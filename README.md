@@ -10,5 +10,8 @@ Simple Api pour fonctionner avec [ce projet](https://github.com/Hemael/portfolio
 
 ### .env
 ```
-
+DB_HOST=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
 ```
