@@ -53,6 +53,7 @@ router.post('/create', async (req, res) => {
     `<a href='${link}'>Clique-sur moi !</a><br><br> et si marche pas, accède directement à cette url <a href='${link}'>${link}</a>`
   );
 
+  return res.send("success");
 
 });
 
