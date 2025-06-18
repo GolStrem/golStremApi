@@ -16,19 +16,19 @@ router.post('/login', async (req, res) => {
   
 
   // Vérifie si le login existe
-  const result = await db.query('SELECT password,id FROM login WHERE login = ? and status = ?', login, 1);
-  if (!result || result.length === 0) return res.status(401).send('Identifiants incorrects');
+  const result = await db.oneResult('SELECT password,id FROM login WHERE login = ? and status = ?', login, 1);
+  if (!result) return res.status(401).send('Identifiants incorrects');
   
 
   // Vérifie si le mot de passe est bon
-  const valid = await check(result[0].password, password);
+  const valid = await check(result.password, password);
   if (!valid) return res.status(401).send('Identifiants incorrects');
 
   const token = crypto.randomBytes(16).toString('hex').slice(0, 16);
 
   await db.query(
     'INSERT INTO session(userId, token, ip) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = ?, createdAt = NOW()',
-    result[0].id, token, req.ip, token
+    result.id, token, req.ip, token
     );
 
   
