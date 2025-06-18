@@ -16,7 +16,7 @@ router.post('/login', async (req, res) => {
   
 
   // Vérifie si le login existe
-  const result = await db.query('SELECT password FROM login WHERE login = ?', login);
+  const result = await db.query('SELECT password FROM login WHERE login = ? and status = ?', login, 1);
   if (!result || result.length === 0) return res.status(401).send('Identifiants incorrects');
   
 
