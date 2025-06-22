@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const { hashing, check } = require('@lib/Crypt');
-const { sendMail } = require('@lib/Mail');
+const { sendMail, sendMailTpl } = require('@lib/Mail');
 const Database = require('@lib/DataBase');
 const validator = require('validator');
 const crypto = require('crypto');
@@ -55,11 +55,7 @@ router.post('/create', async (req, res) => {
 
   link = `${process.env.API_URL}/user/validMail/${email}/${tokenMail}`
 
-  sendMail(
-    email, 
-    `Mail de validation pour le compte ${login} sur golstrem`,
-    `<a href='${link}'>Clique-sur moi !</a><br><br> et si marche pas, accède directement à cette url <a href='${link}'>${link}</a>`
-  );
+  sendMailTpl(email,`Mail de validation pour le compte ${login} sur golstrem`,'welcom/tpl','welcom/tpl')
 
   return res.send("success");
 

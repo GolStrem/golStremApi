@@ -1,0 +1,58 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #111111;
+}
+
+.outer-table {
+  background-color: #111111;
+}
+
+.inner-table {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.title {
+  padding: 30px 20px;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.text {
+  padding: 0 30px 20px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.button-container {
+  padding: 20px;
+  text-align: center;
+}
+
+.button {
+  background-color: #f1c40f;
+  color: black;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 5px;
+  display: inline-block;
+  font-size: 16px;
+}
+
+.footer-note {
+  padding: 0 30px 30px;
+  font-size: 14px;
+  color: #bbbbbb;
+}
+
+.footer-copy {
+  padding: 20px;
+  font-size: 12px;
+  color: #666666;
+  text-align: center;
+}
