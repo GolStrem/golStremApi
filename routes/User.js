@@ -1,9 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
-const { hashing, check } = require('../lib/Crypt');
-const { sendMail } = require('../lib/Mail');
-const Database = require('../lib/DataBase');
+const { hashing, check } = require('@lib/Crypt');
+const { sendMail } = require('@lib/Mail');
+const Database = require('@lib/DataBase');
 const validator = require('validator');
 const crypto = require('crypto');
 const db = new Database();
@@ -51,7 +51,7 @@ router.post('/create', async (req, res) => {
 
 
   await db.query('insert into login(login,password,email) values(?,?,?)', login, passwordHashed, email);
-  await db.query('insert into tokenMail values(?,?)', email, tokenMail);
+  await db.query('insert into token(extra,token,type,endAt) values(?, ?, ?, NOW() + INTERVAL 1 DAY)', email, tokenMail, 'createUser');
 
   link = `${process.env.API_URL}/user/validMail/${email}/${tokenMail}`
 
@@ -68,13 +68,35 @@ router.post('/create', async (req, res) => {
 router.get('/validMail/:email/:token', async (req, res) => {
   const { email, token } = req.params;
 
-  const goodToken = await db.exist('delete FROM tokenMail WHERE mail = ? and token = ?', email, token);
+  const goodToken = await db.exist('delete FROM token WHERE extra = ? and token = ? and type = ? and endAt > now()', email, token, 'createUser');
   if(!goodToken) return res.status(401).send('token/mail incorrects');
 
-  await db.exist('update login set status = ?', 1);
+  await db.exist('update login set status = ? where email = ?', 1, email);
 
   return res.send("success");
+});
 
+router.use('/changePassword', require('./User/ChangePassword'));
+
+router.get('/sendMailPassword/:email/', async (req, res) => {
+  const { email } = req.params;
+  if (!validator.isEmail(email)) return res.status(400).send('Mail non conforme');
+
+  const exist = await db.oneResult('SELECT id FROM login WHERE email = ? and status = ?', email, 1);
+  if (!exist) return res.send("success"); // Ne pas indiqué si le mail existe.
+
+  token = crypto.randomBytes(16).toString('hex').slice(0, 16);
+
+  await db.query('insert into token(extra,token,type,endAt) values(?, ?, ?, NOW() + INTERVAL 1 DAY)', exist.id, token, 'changePassword');
+
+  link = `${process.env.FRONT_URL}/changePassword?token=${token}&userId=${exist.id}`
+  sendMail(
+    email, 
+    `Mail de changement de mot de passe sur golstrem`,
+    `<a href='${link}'>Clique-sur moi !</a><br><br> et si marche pas, accède directement à cette url <a href='${link}'>${link}</a>`
+  );
+
+  return res.send("success");
 });
 
 module.exports = router;

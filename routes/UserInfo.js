@@ -1,11 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
-const { isSubset } = require('../lib/Util');
+const { isSubset } = require('@lib/Util');
 
 
-const session = new (require('../lib/Session'))();
-const db = new (require('../lib/DataBase'))();
+const session = new (require('@lib/Session'))();
+const db = new (require('@lib/DataBase'))();
 
 router.get('', async (req, res) => {
     const authHeader = req.headers['authorization'];
