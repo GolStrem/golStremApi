@@ -8,7 +8,6 @@ const app = express();
 app.use(express.json());
 const port = 8000;
 
-
 // Autorise les requêtes venant du front React
 app.use(cors({
   origin: process.env.FRONT_URL,
@@ -19,6 +18,6 @@ app.use(cors({
 app.use('/user', require('@routes/User'));
 app.use('/userInfo', require('@routes/UserInfo'));
 
-app.listen(port, () => {
+app.listen(port, async () => {
     console.log(`Serveur lancé sur http://localhost:${port}`);
 });
