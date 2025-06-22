@@ -1,1 +1,8 @@
-{"mail.ignored" : "Si vous n’avez pas créé de compte, ignorez simplement ce message."}
+{
+    "mailIgnored" : "Si vous n’avez pas créé de compte, ignorez simplement ce message.",
+    "mailWelcome" : "Bienvenue {{login}} sur notre plateforme !",
+    "mailThanksSubscribe" : "Merci de vous être inscrit. Veuillez confirmer votre adresse e-mail pour activer votre compte.",
+    "mailConfirm" : "Confirmer mon email",
+    "mailSign" : "© 2025 GolStrem - Tous droits réservés"
+
+}
