@@ -56,8 +56,9 @@ router.post('/create', async (req, res) => {
   link = `${process.env.API_URL}/user/validMail/${email}/${tokenMail}`
 
 
+  const lang = req.headers['lang'] ?? 'fr';
   const vars = {"link" : link, "login" : login}
-  sendMailTpl(email,`Mail de validation pour le compte ${login} sur golstrem`,'welcom/tpl','welcom/tpl', vars)
+  sendMailTpl(email,`Mail de validation pour le compte ${login} sur golstrem`,'welcom/tpl','welcom/tpl', vars, lang)
 
   return res.send("success");
 
