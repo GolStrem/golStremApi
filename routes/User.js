@@ -88,7 +88,7 @@ router.get('/sendMailPassword/:email/', async (req, res) => {
 
   await db.query('insert into token(extra,token,type,endAt) values(?, ?, ?, NOW() + INTERVAL 1 DAY)', exist.id, token, 'changePassword');
 
-  link = `${process.env.FRONT_URL}/changePassword?token=${token}&userId=${exist.id}`
+  link = `${process.env.FRONT_URL}/reset-password?token=${token}&userId=${exist.id}`
   const lang = req.headers['lang'] ?? 'fr';
   sendMailTpl(email,`Mail de changement de mot de passe sur golstrem`,'resetPassword/tpl','welcom/tpl', {"link":link}, lang)
 
