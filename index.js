@@ -12,7 +12,7 @@ const port = 8000;
 const allowedOrigins = [
   'http://83.114.227.65:3000',
   process.env.FRONT_URL,
-  'http://127.0.0.1:3000'
+  'http://localhost:3000'
 ];
 // Autorise les requêtes venant du front React
 app.use(cors({
