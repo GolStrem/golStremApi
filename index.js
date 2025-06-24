@@ -8,11 +8,23 @@ const app = express();
 app.use(express.json());
 const port = 8000;
 
+
+const allowedOrigins = [
+  'http://83.114.227.65:3000',
+  process.env.FRONT_URL
+];
 // Autorise les requêtes venant du front React
 app.use(cors({
-  origin: process.env.FRONT_URL,
-  credentials: true // seulement si tu utilises des cookies ou Authorization headers
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
+
 
 
 app.use('/user', require('@routes/User'));
