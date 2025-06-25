@@ -15,7 +15,7 @@ router.post('/login', async (req, res) => {
   
 
   // Vérifie si le login existe
-  const result = await db.oneResult('SELECT password,id FROM login WHERE login = BINARY ? and status = ?', login, 1);
+  const result = await db.oneResult('SELECT password,id FROM user WHERE login = BINARY ? and status = ?', login, 1);
   if (!result) return res.status(401).send('Identifiants incorrects');
 
   // Vérifie si le mot de passe est bon
@@ -40,7 +40,7 @@ router.post('/create', async (req, res) => {
 
   if (!validator.isEmail(email)) return res.status(400).send('Mail non conforme');
 
-  const alreadyExist = await db.exist('SELECT 1 FROM login WHERE login = ? or email = ?', login, email);
+  const alreadyExist = await db.exist('SELECT 1 FROM user WHERE login = ? or email = ?', login, email);
   if (alreadyExist) return res.status(409).send('alreadyExist');
 
   tokenMail = createToken();
@@ -48,7 +48,7 @@ router.post('/create', async (req, res) => {
   passwordHashed = await hashing(password);
 
 
-  await db.query('insert into login(login,password,email) values(?,?,?)', login, passwordHashed, email);
+  await db.query('insert into user(login,password,email) values(?,?,?)', login, passwordHashed, email);
   await db.query('insert into token(extra,token,type,endAt) values(?, ?, ?, NOW() + INTERVAL 1 DAY)', email, tokenMail, 'createUser');
 
   link = `${process.env.API_URL}/user/validMail/${email}/${tokenMail}`
@@ -68,7 +68,7 @@ router.get('/validMail/:email/:token', async (req, res) => {
   const goodToken = await db.exist('delete FROM token WHERE extra = ? and token = ? and type = ? and endAt > now()', email, token, 'createUser');
   if(!goodToken) return res.status(401).send('token/mail incorrects');
 
-  db.exist('update login set status = ? where email = ?', 1, email);
+  db.exist('update user set status = ? where email = ?', 1, email);
 
   if (req.useragent.browser !== "PostmanRuntime") {
     return res.redirect(`${process.env.FRONT_URL}`);
@@ -83,7 +83,7 @@ router.get('/sendMailPassword/:email/', async (req, res) => {
   const { email } = req.params;
   if (!validator.isEmail(email)) return res.status(400).send('Mail non conforme');
 
-  const exist = await db.oneResult('SELECT id FROM login WHERE email = ? and status = ?', email, 1);
+  const exist = await db.oneResult('SELECT id FROM user WHERE email = ? and status = ?', email, 1);
   if (!exist) return res.send("success");
 
   const mailAlreadySend = await db.oneResult('SELECT 1 FROM token WHERE extra = ? AND TYPE = ?', exist.id, 'changePassword')
