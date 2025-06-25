@@ -1,11 +1,13 @@
 require('dotenv').config();
 require('module-alias/register');
+const useragent = require('express-useragent');
 const express = require('express');
 const cors = require('cors');
 
 
 const app = express();
 app.use(express.json());
+app.use(useragent.express());
 const port = 8000;
 
 
