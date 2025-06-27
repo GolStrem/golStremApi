@@ -16,7 +16,7 @@ router.post('', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const workSpaceValidate = await db.exist('SELECT 1 FROM userWorkSpace WHERE idUser = ? and idWorkSpace = ? and state = ?', session.userId, idWorkSpace, 1);
-    if (!workSpaceValidate) return res.status(405).send("no writer");
+    if (!workSpaceValidate) return res.status(403).send("no writer");
 
     const resultPos = await db.oneResult('SELECT count(1) as nbr FROM tableau WHERE idWorkSpace = ?', idWorkSpace);
     const pos = (!resultPos) ? 0 : resultPos['nbr']
@@ -33,7 +33,7 @@ router.put('/:idTableau', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const tableauValidate = await db.exist(qryCheckOwner, idTableau, session.userId);
-    if (!tableauValidate) return res.status(405).send("no owner");
+    if (!tableauValidate) return res.status(403).send("no owner");
 
     const afterUpdate = await db.update('tableau',keyExist,req.body,['id = ?',[idTableau]])
 
@@ -48,7 +48,7 @@ router.delete('/:idTableau', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const tableauValidate = await db.exist(qryCheckOwner, idTableau, session.userId);
-    if (!tableauValidate) return res.status(405).send("no owner");
+    if (!tableauValidate) return res.status(403).send("no owner");
 
     await db.query("delete from tableau WHERE id = ?", idTableau)
     return res.send("success");

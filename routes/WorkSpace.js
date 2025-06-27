@@ -31,7 +31,7 @@ router.put('/:idWorkSpace', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const workSpaceValidate = await db.exist('SELECT 1 FROM workSpace WHERE idOwner = ? and id = ?', session.userId, idWorkSpace);
-    if (!workSpaceValidate) return res.status(405).send("no owner");
+    if (!workSpaceValidate) return res.status(403).send("no owner");
 
     const afterUpdate = await db.update('workSpace',keyExist,req.body,['id = ?',[idWorkSpace]])
     if (afterUpdate === false) return res.status(400).send('Malformation');
@@ -47,7 +47,7 @@ router.delete('/:idWorkSpace', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const workSpaceValidate = await db.exist('SELECT 1 FROM workSpace WHERE idOwner = ? and id = ?', session.userId, idWorkSpace);
-    if (!workSpaceValidate) return res.status(405).send("no owner");
+    if (!workSpaceValidate) return res.status(403).send("no owner");
 
     await db.query("delete from workSpace WHERE id = ?", idWorkSpace)
     return res.send("success");
@@ -62,7 +62,7 @@ router.post('/:idWorkSpace/user', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const workSpaceValidate = await db.exist('SELECT 1 FROM workSpace WHERE idOwner = ? and id = ?', session.userId, idWorkSpace);
-    if (!workSpaceValidate) return res.status(405).send("no owner");
+    if (!workSpaceValidate) return res.status(403).send("no owner");
 
     const result = await db.oneResult('SELECT count(1) as nbr FROM user WHERE id in (?)', userIds.map(item => item.idUser));
     if (result['nbr'] !== userIds.length) return res.status(404).send('User unknown');
@@ -81,9 +81,9 @@ router.delete('/:idWorkSpace/user/:idUser', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const workSpaceValidate = await db.exist('SELECT 1 FROM workSpace WHERE idOwner = ? and id = ?', session.userId, idWorkSpace);
-    if (!workSpaceValidate) return res.status(405).send("no owner");
+    if (!workSpaceValidate) return res.status(403).send("no owner");
 
-    if (idUser === session.userId) return res.status(405).send("impossible delete owner");
+    if (idUser === session.userId) return res.status(403).send("impossible delete owner");
 
 
     await db.query("delete from userWorkSpace WHERE idWorkSpace = ? and idUser = ?", idWorkSpace, idUser)

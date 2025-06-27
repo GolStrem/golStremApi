@@ -17,7 +17,7 @@ router.get('', async (req, res) => {
     const authHeader = req.headers['authorization'];
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
     const workSpaceValidate = await db.oneResult('SELECT 1 FROM userWorkSpace WHERE idUser = ? and idWorkSpace = ? and state in (?)', session.userId, idWorkSpace, [0,1]);
-    if (!workSpaceValidate) return res.status(405).send("no read/write");
+    if (!workSpaceValidate) return res.status(403).send("no read/write");
 
     
     const resultWs = await db.oneResult(qrys.workSpace, idWorkSpace)

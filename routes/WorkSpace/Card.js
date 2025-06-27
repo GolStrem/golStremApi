@@ -15,7 +15,7 @@ router.post('', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const workSpaceValidate = await db.exist('SELECT 1 FROM userWorkSpace WHERE idUser = ? and idWorkSpace = ? and state = ?', session.userId, idWorkSpace, 1);
-    if (!workSpaceValidate) return res.status(405).send("no writer");
+    if (!workSpaceValidate) return res.status(403).send("no writer");
 
     const tableauExist = await db.exist('SELECT 1 FROM tableau WHERE id = ?', idTableau);
     if (!tableauExist) return res.status(404).send("no tableau");
@@ -35,7 +35,7 @@ router.put('/:idCard', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const cardValidate = await db.exist(qryCheckOwner, idCard, session.userId);
-    if (!cardValidate) return res.status(405).send("no owner");
+    if (!cardValidate) return res.status(403).send("no owner");
 
     const afterUpdate = await db.update('card',keyExist,req.body,['id = ?',[idCard]])
 
@@ -50,7 +50,7 @@ router.delete('/:idCard', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const cardValidate = await db.exist(qryCheckOwner, idCard, session.userId);
-    if (!cardValidate) return res.status(405).send("no owner");
+    if (!cardValidate) return res.status(403).send("no owner");
 
     await db.query("delete from card WHERE id = ?", idCard)
     return res.send("success");
@@ -62,7 +62,7 @@ router.get('/:idCard', async (req, res) => {
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
     const workSpaceValidate = await db.oneResult('SELECT 1 FROM userWorkSpace WHERE idUser = ? and idWorkSpace = ? and state in (?)', session.userId, idWorkSpace, [0,1]);
-    if (!workSpaceValidate) return res.status(405).send("no read/write");
+    if (!workSpaceValidate) return res.status(403).send("no read/write");
 
     const card = await db.oneResult('SELECT image,state,color,name,description,createdAt,endAt FROM card WHERE id = ?', idCard);
     if (!card) return res.status(404).send("no card");
