@@ -4,10 +4,7 @@ const router = express.Router({ mergeParams: true });
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
 
-const qryCheckOwner = 'SELECT t.idWorkSpace FROM tableau t INNER JOIN workSpace ws ON t.idWorkSpace = ws.id WHERE t.idOwner = ? OR ws.idOwner = ?'
-router.get('', async (req, res) => {
-
-})
+const qryCheckOwner = 'SELECT t.idWorkSpace FROM tableau t INNER JOIN workSpace ws ON t.idWorkSpace = ws.id WHERE t.id = ? and (t.idOwner = ? OR ws.idOwner = ?)'
 
 router.post('', async (req, res) => {
     const { idWorkSpace } = req.params;
@@ -31,13 +28,25 @@ router.put('/:idTableau', async (req, res) => {
     const authHeader = req.headers['authorization'];
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
-    const tableauValidate = await db.exist(qryCheckOwner, session.userId, session.userId);
+    const tableauValidate = await db.exist(qryCheckOwner, idTableau, session.userId, session.userId);
     if (!tableauValidate) return res.status(405).send("no owner");
 
     const afterUpdate = await db.update('tableau',keyExist,req.body,['id = ?',[idTableau]])
 
     if (afterUpdate === false) return res.status(400).send('Malformation');
 
+    return res.send("success");
+})
+
+router.delete('/:idTableau', async (req, res) => {
+    const { idTableau } = req.params;
+    const authHeader = req.headers['authorization'];
+    if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
+
+    const tableauValidate = await db.exist(qryCheckOwner, idTableau, session.userId, session.userId);
+    if (!tableauValidate) return res.status(405).send("no owner");
+
+    await db.query("delete from tableau WHERE id = ?", idTableau)
     return res.send("success");
 })
 
