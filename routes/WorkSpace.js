@@ -32,18 +32,9 @@ router.put('/:idWorkSpace', async (req, res) => {
     const workSpaceValidate = await db.exist('SELECT 1 FROM workSpace WHERE idOwner = ? and id = ?', session.userId, idWorkSpace);
     if (!workSpaceValidate) return res.status(405).send("no owner");
 
-    keys = Object.keys(req.body)
-    if(!isSubset(keys,keyExist)) return res.status(400).send('Malformation');
+    const afterUpdate = await db.update('workSpace',keyExist,req.body,['id = ?',[idWorkSpace]])
+    if (afterUpdate === false) return res.status(400).send('Malformation');
 
-    let qry = "update workSpace set "
-    let param = []
-    let qryParts = []
-    for (key of keys) {
-        qryParts.push(`${key} = ?`)
-        param.push(req.body[key])
-    }
-    qry += qryParts.join(',') + " where id = ?"
-    await db.query(qry, ...param, idWorkSpace)
 
     return res.send("success");
 })
