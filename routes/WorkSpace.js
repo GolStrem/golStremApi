@@ -45,6 +45,20 @@ router.put('/:workSpaceId', async (req, res) => {
     return res.send("success");
 })
 
+router.delete('/:idWorkSpace', async (req, res) => {
+    const { idWorkSpace } = req.params;
+
+    const authHeader = req.headers['authorization'];
+    if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
+
+    const workSpaceValidate = await db.exist('SELECT 1 FROM workSpace WHERE idOwner = ? and id = ?', session.userId, idWorkSpace);
+    if (!workSpaceValidate) return res.status(405).send("no owner");
+
+    await db.query("delete from workSpace WHERE id = ?", idWorkSpace)
+    return res.send("success");
+})
+
+
 router.post('/:idWorkSpace/user', async (req, res) => {
     const { idWorkSpace } = req.params;
     const userIds = Array.isArray(req.body) ? req.body : [req.body]
