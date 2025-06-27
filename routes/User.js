@@ -48,9 +48,9 @@ router.post('/create', async (req, res) => {
   passwordHashed = await hashing(password);
 
 
-  await db.query('insert into user(login,password,email) values(?,?,?)', login, passwordHashed, email);
-  await db.query('insert into token(extra,token,type,endAt) values(?, ?, ?, NOW() + INTERVAL 1 DAY)', email, tokenMail, 'createUser');
-
+  await db.push('user','login,password,email', [login, passwordHashed, email])
+  const endAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await db.push('token','extra,token,type,endAt', [email, tokenMail, 'createUser', endAt])
   link = `${process.env.API_URL}/user/validMail/${email}/${tokenMail}`
 
 
@@ -91,7 +91,8 @@ router.get('/sendMailPassword/:email/', async (req, res) => {
 
   token = createToken();
 
-  await db.query('insert into token(extra,token,type,endAt) values(?, ?, ?, NOW() + INTERVAL 1 DAY)', exist.id, token, 'changePassword');
+  const endAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await db.push('token','extra,token,type,endAt', [exist.id, token, 'changePassword', endAt])
 
   link = `${process.env.FRONT_URL}/reset-password?token=${token}&userId=${exist.id}`
   const lang = req.headers['lang'] ?? 'fr';

@@ -12,8 +12,8 @@ router.post('', async (req, res) => {
     const authHeader = req.headers['authorization'];
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
-    const afterInsert = await db.query('insert into workSpace(idOwner, name, description, image) values(?,?,?,?)', session.userId, name, description, image);
-    await db.query('insert into userWorkSpace(idUser, idWorkSpace, state) values(?,?,?)', session.userId, afterInsert.insertId, 1)
+    const afterInsert = await db.push('workSpace','idOwner, name, description, image', [session.userId, name, description, image])
+    await db.push('userWorkSpace','idUser, idWorkSpace, state', [session.userId, afterInsert.insertId, 1])
 
     return res.send("success");
 })
