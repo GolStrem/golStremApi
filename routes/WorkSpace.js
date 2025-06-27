@@ -45,23 +45,39 @@ router.put('/:workSpaceId', async (req, res) => {
     return res.send("success");
 })
 
-router.post('/:workSpaceId/user', async (req, res) => {
-    const { workSpaceId } = req.params;
+router.post('/:idWorkSpace/user', async (req, res) => {
+    const { idWorkSpace } = req.params;
     const userIds = Array.isArray(req.body) ? req.body : [req.body]
 
     const authHeader = req.headers['authorization'];
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
 
-    const workSpaceValidate = await db.exist('SELECT 1 FROM workSpace WHERE idOwner = ? and id = ?', session.userId, workSpaceId);
-    if (!workSpaceValidate) return res.status(404).send();
+    const workSpaceValidate = await db.exist('SELECT 1 FROM workSpace WHERE idOwner = ? and id = ?', session.userId, idWorkSpace);
+    if (!workSpaceValidate) return res.status(405).send("no owner");
 
     const result = await db.oneResult('SELECT count(1) as nbr FROM user WHERE id in (?)', userIds.map(item => item.idUser));
     if (result['nbr'] !== userIds.length) return res.status(404).send('User unknown');
-    userIds.forEach(obj => obj.extra = workSpaceId);
+    userIds.forEach(obj => obj.extra = idWorkSpace);
     const listValue = userIds.map(obj => Object.values(obj));
 
 
     await db.push('userWorkSpace','idUser, state, idWorkSpace', listValue)
+    return res.send("success");
+})
+
+router.delete('/:idWorkSpace/user/:idUser', async (req, res) => {
+    const { idWorkSpace, idUser } = req.params;
+
+    const authHeader = req.headers['authorization'];
+    if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
+
+    const workSpaceValidate = await db.exist('SELECT 1 FROM workSpace WHERE idOwner = ? and id = ?', session.userId, idWorkSpace);
+    if (!workSpaceValidate) return res.status(405).send("no owner");
+
+    if (idUser === session.userId) return res.status(405).send("impossible delete owner");
+
+
+    await db.query("delete from userWorkSpace WHERE idWorkSpace = ? and idUser = ?", idWorkSpace, idUser)
     return res.send("success");
 })
 
