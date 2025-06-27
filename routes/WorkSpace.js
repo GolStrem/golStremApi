@@ -5,8 +5,8 @@ const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
 const { isSubset } = require('@lib/Util');
 
-router.use('/', require('./WorkSpace/GetAllWorkSpace'));
-router.use('/:idWorkSpace/tableau', require('./WorkSpace/Tableau'));
+router.use('/', require('@routes/WorkSpace/GetAllWorkSpace'));
+router.use('/:idWorkSpace/tableau', require('@routes/WorkSpace/Tableau'));
 
 router.post('', async (req, res) => {
     const { name, description, image } = req.body;
