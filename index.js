@@ -32,6 +32,7 @@ app.use(cors({
 
 app.use('/user', require('@routes/User'));
 app.use('/userInfo', require('@routes/UserInfo'));
+app.use('/workSpace', require('@routes/WorkSpace'));
 
 app.listen(port, async () => {
     console.log(`Serveur lancé sur http://localhost:${port}`);
