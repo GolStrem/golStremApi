@@ -6,6 +6,7 @@ const db = new (require('@lib/DataBase'))();
 const { isSubset } = require('@lib/Util');
 
 router.use('/', require('@routes/WorkSpace/GetAllWorkSpace'));
+router.use('/:idWorkSpace', require('@routes/WorkSpace/GetDetailWorkSpace'));
 router.use('/:idWorkSpace/tableau', require('@routes/WorkSpace/Tableau'));
 
 router.post('', async (req, res) => {

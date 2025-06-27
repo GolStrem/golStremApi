@@ -28,7 +28,7 @@ router.post('', async (req, res) => {
 })
 
 router.put('/:idCard', async (req, res) => {
-    const { idTableau, idCard } = req.params;
+    const { idCard } = req.params;
     const keyExist = [ 'name', 'description', 'color', 'image', 'endAt' , 'state' ];
 
     const authHeader = req.headers['authorization'];
@@ -54,6 +54,20 @@ router.delete('/:idCard', async (req, res) => {
 
     await db.query("delete from card WHERE id = ?", idCard)
     return res.send("success");
+})
+
+router.get('/:idCard', async (req, res) => {
+    const { idWorkSpace, idCard } = req.params;
+    const authHeader = req.headers['authorization'];
+    if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
+
+    const workSpaceValidate = await db.oneResult('SELECT 1 FROM userWorkSpace WHERE idUser = ? and idWorkSpace = ? and state in (?)', session.userId, idWorkSpace, [0,1]);
+    if (!workSpaceValidate) return res.status(405).send("no read/write");
+
+    const card = await db.oneResult('SELECT image,state,color,name,description,createdAt,endAt FROM card WHERE id = ?', idCard);
+    if (!card) return res.status(404).send("no card");
+
+    return res.json(card);
 })
 
 module.exports = router;
