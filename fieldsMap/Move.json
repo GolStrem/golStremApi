@@ -1,0 +1,4 @@
+{
+    "/card" : ["oldTableau", "oldPos", "newTableau", "newPos", "idCard"],
+    "/tableau" : ["oldPos", "newPos", "idTableau"]
+}

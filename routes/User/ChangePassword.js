@@ -21,8 +21,7 @@ router.put('', async (req, res) => {
   const { userId, oldPassword, token, newPassword } = req.body;
 
   if (!userId || !newPassword || !(token || oldPassword)) return res.status(400).send('Malformation');
-
-  const result = await db.oneResult('SELECT password FROM login WHERE id = ? and status = ?', userId, 1);
+  const result = await db.oneResult('SELECT password FROM user WHERE id = ? and status = ?', userId, 1);
   if (!result) return res.status(404).send('UserId not found');
   
   if (!await checkChangeIsPossible(userId, token, oldPassword, result.password)) {
@@ -33,7 +32,7 @@ router.put('', async (req, res) => {
 
   passwordHashed = await hashing(newPassword);
 
-  await db.exist('update login set password = ? where id = ?', passwordHashed, userId);
+  await db.exist('update user set password = ? where id = ?', passwordHashed, userId);
 
   return res.send("success");
 });
