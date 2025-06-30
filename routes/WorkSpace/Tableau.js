@@ -14,7 +14,6 @@ router.post('', async (req, res) => {
 
     const authHeader = req.headers['authorization'];
     if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
-
     const workSpaceValidate = await db.exist('SELECT 1 FROM userWorkSpace WHERE idUser = ? and idWorkSpace = ? and state = ?', session.userId, idWorkSpace, 1);
     if (!workSpaceValidate) return res.status(403).send("no writer");
 

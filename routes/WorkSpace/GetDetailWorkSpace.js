@@ -38,7 +38,11 @@ router.get('', async (req, res) => {
     }
 
     response.tableau = await db.query(qrys.tableau, idWorkSpace)
-    resultC = await db.query(qrys.card, response.tableau.map(item => item.id))
+    const listIdTableau = response.tableau.map(item => item.id)
+    if(listIdTableau.length === 0) {
+        return res.json(response);
+    }
+    resultC = await db.query(qrys.card, listIdTableau)
 
 
     const tableauxById = Object.fromEntries(response.tableau.map(t => [t.id, t]));
