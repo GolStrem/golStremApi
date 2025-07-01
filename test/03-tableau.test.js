@@ -31,7 +31,7 @@ describe('Tableau routes', () => {
     };
 
     const res = await request(app).post(`/workSpace/${idWorkSpace}/tableau`).set('Authorization', token).send(payload);
-
+    
     expect(res.statusCode).to.equal(200);
     expect(res.text).to.equal('success');
 

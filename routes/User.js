@@ -6,13 +6,9 @@ const { sendMailTpl } = require('@lib/Mail');
 const Database = require('@lib/DataBase');
 const validator = require('validator');
 const db = new Database();
-
-router.post('/login', async (req, res) => {
-  const { login, password } = req.body;
-
-  
-  if (!login || !password) return res.status(400).send('Malformation');
-  
+const { checkFields } = require('@lib/RouterMisc');
+router.post('/login', checkFields('login'), async (req, res) => {
+  const { login, password } = req.body;  
 
   // Vérifie si le login existe
   const result = await db.oneResult('SELECT password,id FROM user WHERE login = BINARY ? and status = ?', login, 1);
@@ -33,10 +29,8 @@ router.post('/login', async (req, res) => {
   return res.send(token);
 });
 
-router.post('/create', async (req, res) => {
+router.post('/create', checkFields('create'), async (req, res) => {
   const { login, password, email } = req.body;
-
-  if (!login || !password || !email) return res.status(400).send('Malformation');
 
   if (!validator.isEmail(email)) return res.status(400).send('Mail non conforme');
 

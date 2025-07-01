@@ -17,7 +17,7 @@ describe('WorkSpace routes',  () => {
   it('POST /workSpace → doit créer un workspace', async () => {
     const wsName = `ws_test_${Date.now()}`
     const data = {
-        name: wsName,
+        name: `ws_test_${Date.now()}`,
         description: 'Workspace de test',
         image: 'https://dummyimage.com/600x400'
       }

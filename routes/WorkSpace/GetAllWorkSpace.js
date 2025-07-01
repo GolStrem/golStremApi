@@ -4,6 +4,9 @@ const router = express.Router();
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
 
+const { auth } = require('@lib/RouterMisc');
+
+
 const qryPartsWorkSpaceUser = {
     begin : "SELECT uws.idWorkSpace, uws.state FROM userWorkSpace uws inner JOIN userWorkSpace uws2 ON uws.idWorkSpace = uws2.idWorkSpace ",
     where : "WHERE uws2.idUser = ? ",
@@ -13,13 +16,10 @@ const qryPartsWorkSpaceUser = {
 
 const qryWorkSpaceInfo = "SELECT ws.id, ws.idOwner, ws.name, ws.description, ws.image FROM workSpace ws WHERE ws.id in (?)"
 
-const qryUser = "SELECT u.id, u.login, u.image FROM user u where u.id in (?)"
 
-router.get('', async (req, res) => {
-    const authHeader = req.headers['authorization'];
-    if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
+router.get('', auth(), async (req, res) => {
     const response = {}
-    const userId = session.userId
+    const userId = session.getUserId()
     const limit = req.headers['limit'];
     const offset = req.headers['offset'] ?? 0;
 

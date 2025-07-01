@@ -11,12 +11,12 @@ const qrys = {
     tableau : "SELECT t.id, t.name, t.idOwner, t.color, t.image, t.createdAt FROM tableau t WHERE t.idWorkSpace = ? order by pos",
     card : "SELECT c.idTableau, c.id, c.name, c.description, c.idOwner, c.color, c.image, c.state, c.createdAt, c.endAt FROM card c WHERE c.idTableau in (?) order by pos"
 }
+const { auth } = require('@lib/RouterMisc');
 
-router.get('', async (req, res) => {
+router.get('',auth(), async (req, res) => {
     const { idWorkSpace } = req.params
-    const authHeader = req.headers['authorization'];
-    if(!await session.checkToken(authHeader, req.ip)) return res.status(401).send('token unknown');
-    const workSpaceValidate = await db.oneResult('SELECT 1 FROM userWorkSpace WHERE idUser = ? and idWorkSpace = ? and state in (?)', session.userId, idWorkSpace, [0,1]);
+
+    const workSpaceValidate = await db.oneResult('SELECT 1 FROM userWorkSpace WHERE idUser = ? and idWorkSpace = ? and state in (?)', session.getUserId(), idWorkSpace, [0,1]);
     if (!workSpaceValidate) return res.status(403).send("no read/write");
 
     

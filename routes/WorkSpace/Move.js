@@ -3,12 +3,10 @@ const router = express.Router({ mergeParams: true });
 
 const db = new (require('@lib/DataBase'))();
 
-const { authWrite, checkFields, setExtra } = require('@lib/RouterMisc');
+const { auth, checkFields } = require('@lib/RouterMisc');
 
 
-setExtra("nameMap","Move")
-
-router.patch('/card', authWrite, checkFields, async (req, res) => {
+router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
     const {oldTableau, oldPos, newTableau, newPos, idCard} = req.body
     
 
@@ -22,7 +20,7 @@ router.patch('/card', authWrite, checkFields, async (req, res) => {
     return res.send("success");
 });
 
-router.patch('/tableau', authWrite, checkFields, async (req, res) => {
+router.patch('/tableau', auth([1]), checkFields('moveTableau'), async (req, res) => {
     const {idWorkSpace} = req.params
     const {oldPos, newPos, idTableau} = req.body
 
