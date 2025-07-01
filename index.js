@@ -34,6 +34,11 @@ app.use('/user', require('@routes/User'));
 app.use('/userInfo', require('@routes/UserInfo'));
 app.use('/workSpace', require('@routes/WorkSpace'));
 
-app.listen(port, async () => {
-    console.log(`Serveur lancé sur http://localhost:${port}`);
-});
+// Lance le serveur uniquement si on n’est **pas** en mode test
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(port, async () => {
+      console.log(`Serveur lancé sur http://localhost:${port}`);
+  });
+}
+
+module.exports = app; 
