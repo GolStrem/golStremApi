@@ -2,6 +2,8 @@ const db = new (require('@lib/DataBase'))();
 const request = require('supertest');
 const app = require('../index.js');
 
+let token = '8a015085551a954d';
+
 before(async () => {
   const chai = await import('chai');
   expect = chai.expect;
@@ -43,11 +45,37 @@ describe('User routes', () => {
   });
 
   it('PUT user/changePassword -> doit changer le password pour un user', async () => {
-    const token = await db.oneResult("select extra, token from token where type = ?", "changePassword")
-    const res = await request(app).put('/user/changePassword').send({userId: token.extra, newPassword: "chocolat2",token: token.token});
+    const tokenPassword = await db.oneResult("select extra, token from token where type = ?", "changePassword")
+    const res = await request(app).put('/user/changePassword').send({userId: tokenPassword.extra, newPassword: "chocolat2",token: tokenPassword.token});
 
     
     expect(res.statusCode).to.equal(200);
+  });
+
+    it('GET /user -> doit retourner les informations de l\'utilisateur authentifié', async () => {
+    const res = await request(app)
+      .get('/user')
+      .set('authorization', token)
+      .send();
+
+    expect(res.statusCode).to.equal(200);
+    expect(res.body).to.have.property('login', 'invite');
+    // l\'image peut être NULL, on ne teste donc pas sa valeur ici
+  });
+
+  it('PUT /user/:idUser -> doit mettre à jour un utilisateur', async () => {
+    // on récupère l\'id de l\'utilisateur "test" pour construire la route
+
+    const res = await request(app)
+      .put(`/user/1`)
+      .set('authorization', token)
+      .send({ login: "test2" });
+
+    expect(res.statusCode).to.equal(200);
+    expect(res.text).to.equal("success");
+
+    const rows = await db.query("select 1 from user where login = ?", "test2");
+    expect(rows.length).to.equal(1);
   });
 
 });

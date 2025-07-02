@@ -6,7 +6,31 @@ const { sendMailTpl } = require('@lib/Mail');
 const Database = require('@lib/DataBase');
 const validator = require('validator');
 const db = new Database();
-const { checkFields } = require('@lib/RouterMisc');
+const { checkFields, auth } = require('@lib/RouterMisc');
+const session = new (require('@lib/Session'))();
+
+router.use('/changePassword', require('./User/ChangePassword'));
+
+router.get('', auth(), async (req, res) => {
+
+    const user = await db.oneResult('SELECT id, login, email, image, status FROM user WHERE id = ?', session.getUserId());
+    if (!user) return res.status(404).send("no user");
+
+    return res.json(user);
+})
+
+router.put('/:idUser', auth(), async (req, res) => {
+    const { idUser } = req.params;
+    const keyExist = [ 'login', 'image', 'email'];
+
+    const afterUpdate = await db.update('user',keyExist,req.body,['id = ?',[idUser]])
+
+    if (afterUpdate === false) return res.status(400).send('Malformation');
+
+    return res.send("success");
+})
+
+
 router.post('/login', checkFields('login'), async (req, res) => {
   const { login, password } = req.body;  
 
@@ -71,7 +95,28 @@ router.get('/validMail/:email/:token', async (req, res) => {
   return res.send("success");
 });
 
-router.use('/changePassword', require('./User/ChangePassword'));
+router.get('/sendMailPassword/:email/', async (req, res) => {
+  const { email } = req.params;
+  if (!validator.isEmail(email)) return res.status(400).send('Mail non conforme');
+
+  const exist = await db.oneResult('SELECT id FROM user WHERE email = ? and status = ?', email, 1);
+  if (!exist) return res.send("success");
+
+  const mailAlreadySend = await db.oneResult('SELECT 1 FROM token WHERE extra = ? AND TYPE = ?', exist.id, 'changePassword')
+  if (mailAlreadySend) return res.send("success"); 
+
+  token = createToken();
+
+  const endAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await db.push('token','extra,token,type,endAt', [exist.id, token, 'changePassword', endAt])
+
+  link = `${process.env.FRONT_URL}/reset-password?token=${token}&userId=${exist.id}`
+  const lang = req.headers['lang'] ?? 'fr';
+  sendMailTpl(email,`{{resetPasswordSubject}}`,'resetPassword/tpl','welcom/tpl', {"link":link}, lang)
+
+  return res.send("success");
+});
+
 
 router.get('/sendMailPassword/:email/', async (req, res) => {
   const { email } = req.params;
