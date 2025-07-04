@@ -40,7 +40,6 @@ describe('Card routes', () => {
 
     const res = await request(app).post(`/workSpace/${idWorkSpace}/tableau/${idTableauA}/card`).set('Authorization', token).send(payload);
     expect(res.statusCode).to.equal(200);
-    expect(res.text).to.equal('success');
 
     const row = await db.oneResult('SELECT id, pos FROM card WHERE name = ? AND idTableau = ?',payload.name, idTableauA);
     expect(row).to.not.equal(null);

@@ -15,9 +15,13 @@ router.post('', auth(), checkFields('workSpace'), async (req, res) => {
     const { name, description, image } = req.body;
 
     const afterInsert = await db.push('workSpace','idOwner, name, description, image', [session.getUserId(), name, description, image])
-    await db.push('userWorkSpace','idUser, idWorkSpace, state', [session.getUserId(), afterInsert.insertId, 1])
+    const id = afterInsert.insertId;
+    await db.push('userWorkSpace','idUser, idWorkSpace, state', [session.getUserId(), id, 1])
 
-    return res.send("success");
+
+    return res.json({
+        [id]: req.body
+    });
 })
 
 router.put('/:idWorkSpace', authAndOwner('workSpace'), async (req, res) => {

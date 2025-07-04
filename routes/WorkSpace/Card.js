@@ -17,8 +17,13 @@ router.post('', checkFields('card'), authAndOwner('workSpace'), async (req, res)
     const resultPos = await db.oneResult('SELECT count(1) as nbr FROM card WHERE idTableau = ?', idTableau);
     const pos = (!resultPos) ? 0 : resultPos['nbr']
 
-    await db.push('card','idTableau, idOwner, name, description, color, image, state, endAt, pos', [idTableau, session.getUserId(), name, description, color, image, 0, endAt, pos])
-    return res.send("success");
+    const afterInsert = await db.push('card','idTableau, idOwner, name, description, color, image, state, endAt, pos', [idTableau, session.getUserId(), name, description, color, image, 0, endAt, pos])
+
+    const id = afterInsert.insertId;
+    
+    return res.json({
+        [id]: req.body
+    });
 })
 
 router.put('/:idCard', authAndOwner('card'), async (req, res) => {
