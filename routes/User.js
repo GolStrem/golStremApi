@@ -13,7 +13,7 @@ router.use('/changePassword', require('./User/ChangePassword'));
 
 router.get('', auth(), async (req, res) => {
 
-    const user = await db.oneResult('SELECT id, login, email, image, status FROM user WHERE id = ?', session.getUserId());
+    const user = await db.oneResult('SELECT id, pseudo, email, image, status FROM user WHERE id = ?', session.getUserId());
     if (!user) return res.status(404).send("no user");
 
     return res.json(user);
@@ -21,7 +21,7 @@ router.get('', auth(), async (req, res) => {
 
 router.put('/:idUser', auth(), async (req, res) => {
     const { idUser } = req.params;
-    const keyExist = [ 'login', 'image', 'email'];
+    const keyExist = [ 'pseudo', 'image', 'email'];
 
     const afterUpdate = await db.update('user',keyExist,req.body,['id = ?',[idUser]])
 
@@ -32,13 +32,11 @@ router.put('/:idUser', auth(), async (req, res) => {
 
 
 router.post('/login', checkFields('login'), async (req, res) => {
-  const { login, password } = req.body;  
+  const { email, password } = req.body;  
 
-  // Vérifie si le login existe
-  const result = await db.oneResult('SELECT password,id FROM user WHERE login = BINARY ? and status = ?', login, 1);
+  const result = await db.oneResult('SELECT password,id FROM user WHERE email = ? and status = ?', email, 1);
   if (!result) return res.status(401).send('Identifiants incorrects');
 
-  // Vérifie si le mot de passe est bon
   const valid = await check(result.password, password);
   if (!valid) return res.status(401).send('Identifiants incorrects');
 
@@ -60,11 +58,11 @@ router.post('/login', checkFields('login'), async (req, res) => {
 });
 
 router.post('/create', checkFields('create'), async (req, res) => {
-  const { login, password, email } = req.body;
+  const { pseudo, password, email } = req.body;
 
   if (!validator.isEmail(email)) return res.status(400).send('Mail non conforme');
 
-  const alreadyExist = await db.exist('SELECT 1 FROM user WHERE login = ? or email = ?', login, email);
+  const alreadyExist = await db.exist('SELECT 1 FROM user WHERE pseudo = ? or email = ?', pseudo, email);
   if (alreadyExist) return res.status(409).send('alreadyExist');
 
   tokenMail = createToken();
@@ -72,14 +70,14 @@ router.post('/create', checkFields('create'), async (req, res) => {
   passwordHashed = await hashing(password);
 
 
-  await db.push('user','login,password,email', [login, passwordHashed, email])
+  await db.push('user','pseudo,password,email', [pseudo, passwordHashed, email])
   const endAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
   await db.push('token','extra,token,type,endAt', [email, tokenMail, 'createUser', endAt])
   link = `${process.env.API_URL}/user/validMail/${email}/${tokenMail}`
 
 
   const lang = req.headers['lang'] ?? 'fr';
-  const vars = {"link" : link, "login" : login}
+  const vars = {"link" : link, "pseudo" : pseudo}
   sendMailTpl(email,'{{welcomeSubject}}','welcom/tpl','welcom/tpl', vars, lang)
 
   return res.send("success");

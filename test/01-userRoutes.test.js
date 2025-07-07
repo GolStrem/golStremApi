@@ -11,13 +11,13 @@ before(async () => {
 
 describe('User routes', () => {
   it('POST /user/create -> doit créer un utilisateur', async () => {
-    const res = await request(app).post('/user/create').send({ login: "test", password: "chocolat", email: "test@gmail.com" });
+    const res = await request(app).post('/user/create').send({ pseudo: "test", password: "chocolat", email: "test@gmail.com" });
 
 
     expect(res.statusCode).to.equal(200);
     expect(res.text).to.equal("success")
 
-    const rows = await db.query("select 1 from user where login = ?", "test")
+    const rows = await db.query("select 1 from user where pseudo = ?", "test")
     expect(rows.length).to.equal(1);
   });
 
@@ -27,12 +27,12 @@ describe('User routes', () => {
 
     await request(app).get(`/user/validMail/test@gmail.com/${token.token}`).send();
 
-    const rows = await db.query("select 1 from user where login = ? and status = ?", "test", 1)
+    const rows = await db.query("select 1 from user where pseudo = ? and status = ?", "test", 1)
     expect(rows.length).to.equal(1);
   });
 
   it('POST /user/login -> doit connecter un user', async () => {
-    const res = await request(app).post('/user/login').send({ login: "test", password: "chocolat"});
+    const res = await request(app).post('/user/login').send({ email: "test@test.com", password: "chocolat"});
 
     expect(res.statusCode).to.equal(200);
     const rows = await db.query("select 1 from session where token = ?", res.text)
@@ -59,7 +59,7 @@ describe('User routes', () => {
       .send();
 
     expect(res.statusCode).to.equal(200);
-    expect(res.body).to.have.property('login', 'invite');
+    expect(res.body).to.have.property('pseudo', 'invite');
     // l\'image peut être NULL, on ne teste donc pas sa valeur ici
   });
 
@@ -69,12 +69,12 @@ describe('User routes', () => {
     const res = await request(app)
       .put(`/user/1`)
       .set('authorization', token)
-      .send({ login: "test2" });
+      .send({ pseudo: "test2" });
 
     expect(res.statusCode).to.equal(200);
     expect(res.text).to.equal("success");
 
-    const rows = await db.query("select 1 from user where login = ?", "test2");
+    const rows = await db.query("select 1 from user where pseudo = ?", "test2");
     expect(rows.length).to.equal(1);
   });
 
