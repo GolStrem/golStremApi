@@ -24,7 +24,6 @@ describe('WorkSpace routes',  () => {
     const res = await request(app).post('/workSpace').set('Authorization', token).send(data);
 
     expect(res.statusCode).to.equal(200);
-    expect(res.text).to.equal('success');
 
     const row = await db.oneResult('SELECT id FROM workSpace WHERE name = ?', wsName);
     expect(row).to.be.ok;

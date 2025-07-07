@@ -33,7 +33,6 @@ describe('Tableau routes', () => {
     const res = await request(app).post(`/workSpace/${idWorkSpace}/tableau`).set('Authorization', token).send(payload);
     
     expect(res.statusCode).to.equal(200);
-    expect(res.text).to.equal('success');
 
 
     const row = await db.oneResult('SELECT id FROM tableau WHERE name = ? AND idWorkSpace = ?',payload.name, idWorkSpace);

@@ -14,8 +14,13 @@ router.post('', checkFields('tableau'), auth([1]), async (req, res) => {
 
     const resultPos = await db.oneResult('SELECT count(1) as nbr FROM tableau WHERE idWorkSpace = ?', idWorkSpace);
     const pos = (!resultPos) ? 0 : resultPos['nbr']
-    await db.push('tableau','idOwner, idWorkSpace, color, name, image, pos', [session.getUserId(), idWorkSpace, color, name, image, pos])
-    return res.send("success");
+    const afterInsert = await db.push('tableau','idOwner, idWorkSpace, color, name, image, pos', [session.getUserId(), idWorkSpace, color, name, image, pos])
+    
+    const id = afterInsert.insertId;
+    
+    return res.json({
+        [id]: req.body
+    });
 })
 
 router.put('/:idTableau', authAndOwner('tableau'), async (req, res) => {

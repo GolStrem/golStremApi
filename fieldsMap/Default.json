@@ -1,7 +1,7 @@
 {
     "moveCard" : ["oldTableau", "oldPos", "newTableau", "newPos", "idCard"],
     "moveTableau" : ["oldPos", "newPos", "idTableau"],
-    "tableau": ["color", "name", "image"],
+    "tableau": ["color", "name"],
     "workSpace": ["name"],
     "card": [ "name", "description", "color", "image", "endAt"],
     "login": [ "login", "password" ],
