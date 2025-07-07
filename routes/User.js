@@ -10,14 +10,22 @@ const { checkFields, auth } = require('@lib/RouterMisc');
 const session = new (require('@lib/Session'))();
 
 router.use('/changePassword', require('./User/ChangePassword'));
+router.use('/friends', require('./User/Friends'));
 
 router.get('', auth(), async (req, res) => {
-
     const user = await db.oneResult('SELECT id, pseudo, email, image, status FROM user WHERE id = ?', session.getUserId());
     if (!user) return res.status(404).send("no user");
 
     return res.json(user);
 })
+
+router.get('/:idUser', auth(), async (req, res) => {
+    const { idUser } = req.params;
+
+    const users = await db.query('SELECT id, pseudo, image, status FROM user WHERE ? in (id, pseudo)', idUser);
+    return res.json(users);
+})
+
 
 router.put('/:idUser', auth(), async (req, res) => {
     const { idUser } = req.params;
