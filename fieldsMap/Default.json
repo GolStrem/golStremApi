@@ -4,6 +4,6 @@
     "tableau": ["color", "name"],
     "workSpace": ["name"],
     "card": [ "name", "description", "color", "image", "endAt"],
-    "login": [ "login", "password" ],
-    "create": [ "login", "password", "email"]
+    "login": [ "email", "password" ],
+    "create": [ "pseudo", "password", "email"]
 }

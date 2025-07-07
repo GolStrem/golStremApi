@@ -7,7 +7,7 @@ const db = new (require('@lib/DataBase'))();
 const qrys = {
     workSpace : "SELECT ws.idOwner, ws.name, ws.description, ws.image FROM workSpace ws WHERE ws.id = ?",
     userWS : "SELECT uws.idWorkSpace, uws.idUser, uws.state FROM userWorkSpace uws inner JOIN userWorkSpace uws2 ON uws.idWorkSpace = uws2.idWorkSpace WHERE uws2.idWorkSpace = ?",
-    user : "SELECT u.id, u.login, u.image FROM user u where u.id in (?)",
+    user : "SELECT u.id, u.pseudo, u.image FROM user u where u.id in (?)",
     tableau : "SELECT t.id, t.name, t.idOwner, t.color, t.image, t.createdAt FROM tableau t WHERE t.idWorkSpace = ? order by pos",
     card : "SELECT c.idTableau, c.id, c.name, c.description, c.idOwner, c.color, c.image, c.state, c.createdAt, c.endAt FROM card c WHERE c.idTableau in (?) order by pos"
 }

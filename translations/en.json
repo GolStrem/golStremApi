@@ -1,7 +1,7 @@
 {
-    "welcomeSubject": "Validation email for the {{login}} account on golstrem",
+    "welcomeSubject": "Validation email for the {{pseudo}} account on golstrem",
     "mailIgnored": "If you did not create an account, simply ignore this message.",
-    "mailWelcome": "Welcome {{login}} to our platform!",
+    "mailWelcome": "Welcome {{pseudo}} to our platform!",
     "mailThanksSubscribe": "Thank you for signing up. Please confirm your email address to activate your account.",
     "mailConfirm": "Confirm my email",
     "mailSign": "© 2025 GolStrem - All rights reserved",
