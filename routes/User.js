@@ -42,6 +42,12 @@ router.post('/login', checkFields('login'), async (req, res) => {
   const valid = await check(result.password, password);
   if (!valid) return res.status(401).send('Identifiants incorrects');
 
+  const resultSession = await db.oneResult('SELECT token FROM session WHERE userId = ? and ip = ?', result.id, req.ip);
+  if (resultSession) {
+    db.query("update session set createdAt = now() where token = ?", resultSession.token)
+    return res.send(resultSession.token);
+  }
+
   token = createToken()
 
   await db.query(
