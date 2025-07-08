@@ -73,7 +73,7 @@ router.delete('/:idWorkSpace/user/:idUser', authAndOwner('workSpace'), async (re
 
 router.put('/:idWorkSpace/user/:idUser', authAndOwner('workSpace'), async (req, res) => {
     const { idWorkSpace, idUser } = req.params;
-    const { state } = req.params;
+    const { state } = req.body;
 
 
     if (idUser === session.getUserId()) return res.status(403).send("impossible d'edit owner");
