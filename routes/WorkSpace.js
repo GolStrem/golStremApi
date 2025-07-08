@@ -51,11 +51,12 @@ router.post('/:idWorkSpace/user', authAndOwner('workSpace'), async (req, res) =>
 
     const result = await db.oneResult('SELECT count(1) as nbr FROM user WHERE id in (?)', userIds.map(item => item.idUser));
     if (result['nbr'] !== userIds.length) return res.status(404).send('User unknown');
+    
     userIds.forEach(obj => obj.extra = idWorkSpace);
     const listValue = userIds.map(obj => Object.values(obj));
 
 
-    await db.push('userWorkSpace','idUser, state, idWorkSpace', listValue)
+    await db.push('userWorkSpace','idUser, state, idWorkSpace', listValue, 'AS new ON DUPLICATE KEY UPDATE state = new.state')
     return res.send("success");
 })
 
@@ -67,6 +68,18 @@ router.delete('/:idWorkSpace/user/:idUser', authAndOwner('workSpace'), async (re
 
 
     await db.query("delete from userWorkSpace WHERE idWorkSpace = ? and idUser = ?", idWorkSpace, idUser)
+    return res.send("success");
+})
+
+router.put('/:idWorkSpace/user/:idUser', authAndOwner('workSpace'), async (req, res) => {
+    const { idWorkSpace, idUser } = req.params;
+    const { state } = req.params;
+
+
+    if (idUser === session.getUserId()) return res.status(403).send("impossible d'edit owner");
+
+
+    await db.query("update userWorkSpace set state = ? WHERE idWorkSpace = ? and idUser = ?", state, idWorkSpace, idUser)
     return res.send("success");
 })
 
