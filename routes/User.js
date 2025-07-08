@@ -10,7 +10,7 @@ const { checkFields, auth } = require('@lib/RouterMisc');
 const session = new (require('@lib/Session'))();
 
 router.use('/changePassword', require('./User/ChangePassword'));
-router.use('/friends', require('./User/Friends'));
+router.use('/friend', require('./User/Friends'));
 
 router.get('', auth(), async (req, res) => {
     const user = await db.oneResult('SELECT id, pseudo, email, image, status FROM user WHERE id = ?', session.getUserId());
