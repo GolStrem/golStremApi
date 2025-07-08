@@ -5,5 +5,6 @@
     "workSpace": ["name"],
     "card": [ "name", "description", "color", "image", "endAt"],
     "login": [ "email", "password" ],
-    "create": [ "pseudo", "password", "email"]
+    "create": [ "pseudo", "password", "email"],
+    "friend": ["idReceiver"]
 }
