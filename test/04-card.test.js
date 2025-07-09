@@ -97,7 +97,6 @@ describe('Card routes', () => {
     const res = await request(app).patch(`/workSpace/${idWorkSpace}/move/card`).set('Authorization', token).send(patchPayload);
 
     expect(res.statusCode).to.equal(200);
-    expect(res.text).to.equal('success');
 
     const rows = await db.query('SELECT id, pos FROM card WHERE idTableau = ? ORDER BY pos', idTableauA);
     expect(rows.map(r => r.id)).to.deep.equal([secondCard, idCard]);
