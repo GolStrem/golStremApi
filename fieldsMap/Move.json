@@ -1,4 +1,4 @@
 {
-    "/card" : ["oldTableau", "oldPos", "newTableau", "newPos", "idCard"],
+    "/card" : ["newTableau", "newPos", "idCard"],
     "/tableau" : ["oldPos", "newPos", "idTableau"]
 }
