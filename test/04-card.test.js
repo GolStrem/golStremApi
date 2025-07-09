@@ -21,7 +21,7 @@ before(async () => {
   const { insertId: idA } = await db.push(
     'tableau',
     'idOwner, idWorkSpace, color, name, image, pos',
-    [1, idWorkSpace, '#aaaaaa', 'Tableau A', 'icon‑A', 0], [1, idWorkSpace, '#bbbbbb', 'Tableau B', 'icon‑B', 1]
+    [[1, idWorkSpace, '#aaaaaa', 'Tableau A', 'icon‑A', 0], [1, idWorkSpace, '#bbbbbb', 'Tableau B', 'icon‑B', 1]]
   );
   idTableauA = idA
   idTableauB = idA + 1;
