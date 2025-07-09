@@ -60,8 +60,13 @@ router.post('/:idWorkSpace/user', authAndOwner('workSpace'), async (req, res) =>
     return res.send("success");
 })
 
-router.delete('/:idWorkSpace/user/:idUser', authAndOwner('workSpace'), async (req, res) => {
+router.delete('/:idWorkSpace/user/:idUser', auth(), async (req, res) => {
     const { idWorkSpace, idUser } = req.params;
+
+    if (String(session.getUserId()) !== String(idUser)) {
+        const validate = await db.oneResult('SELECT 1 FROM workSpace WHERE id = ? and idOwner = ?', idWorkSpace, session.getUserId());
+        if (!validate) return res.status(403).send("no owner");
+    }
 
 
     if (idUser === session.getUserId()) return res.status(403).send("impossible delete owner");
