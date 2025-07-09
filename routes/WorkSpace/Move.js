@@ -25,6 +25,10 @@ router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
         return acc;
     }, {});
 
+    if (grouped[newTableau] === undefined) {
+        grouped[newTableau] = []
+    }
+
     return res.json(grouped);
 });
 
