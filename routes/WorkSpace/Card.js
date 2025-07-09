@@ -4,7 +4,7 @@ const router = express.Router({ mergeParams: true });
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
 
-const { auth, checkFields, authAndOwner } = require('@lib/RouterMisc');
+const { auth, checkFields, authAndOwner, cleanPos } = require('@lib/RouterMisc');
 
 router.post('', checkFields('card'), authAndOwner('workSpace'), async (req, res) => {
     const { idTableau } = req.params;
@@ -38,9 +38,10 @@ router.put('/:idCard', authAndOwner('card'), async (req, res) => {
 })
 
 router.delete('/:idCard', authAndOwner('card'), async (req, res) => {
-    const { idCard } = req.params;
+    const { idTableau, idCard } = req.params;
 
     await db.query("delete from card WHERE id = ?", idCard)
+    cleanPos('card', idTableau)
     return res.send("success");
 })
 

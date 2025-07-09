@@ -3,15 +3,17 @@ const router = express.Router({ mergeParams: true });
 
 const db = new (require('@lib/DataBase'))();
 
-const { auth, checkFields } = require('@lib/RouterMisc');
+const { auth, checkFields, cleanPos } = require('@lib/RouterMisc');
 
 
 router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
-    const { oldTableau, oldPos, newTableau, newPos, idCard } = req.body
+    const { newTableau, newPos, idCard } = req.body
 
 
-    const checkLock = await db.exist('select 1 from card where pos = ? and idTableau = ? and id = ?', oldPos, oldTableau, idCard)
-    if (!checkLock) return res.status(409).send("conflict");
+    const check = await db.oneResult('select idTableau, pos from card where id = ?', idCard)
+    if (!check) return res.status(409).send("conflict");
+    const oldTableau = check.idTableau
+    const oldPos = check.pos
 
     await db.query('update card set pos=pos-1 where idTableau = ? and pos > ?', oldTableau, oldPos, idCard)
     await db.query('update card set pos=pos+1 where idTableau = ? and pos >= ?', newTableau, newPos, idCard)
@@ -29,6 +31,8 @@ router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
         grouped[oldTableau] = []
     }
 
+    cleanPos('card', oldTableau)
+    cleanPos('card', newTableau)
     return res.json(grouped);
 });
 
@@ -44,6 +48,7 @@ router.patch('/tableau', auth([1]), checkFields('moveTableau'), async (req, res)
     await db.query('update tableau set pos=pos+1 where idWorkSpace = ? and pos >= ?', idWorkSpace, newPos)
     await db.query('update tableau set pos=?,idWorkSpace = ? where id = ?', newPos, idWorkSpace, idTableau)
 
+    cleanPos('tableau', idWorkSpace)
     return res.send("success");
 });
 
