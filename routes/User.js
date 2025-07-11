@@ -31,6 +31,8 @@ router.put('/:idUser', auth(), async (req, res) => {
     const { idUser } = req.params;
     const keyExist = [ 'pseudo', 'image', 'email'];
 
+    if (session.getUserId() != idUser) return res.status(403).send("not good user");
+
     const afterUpdate = await db.update('user',keyExist,req.body,['id = ?',[idUser]])
 
     if (afterUpdate === false) return res.status(400).send('Malformation');
