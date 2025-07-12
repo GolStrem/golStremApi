@@ -6,8 +6,8 @@ const db = new Database();
 const session = new (require('@lib/Session'))();
 
 const qry = {
-    friends: 'SELECT u.id, u.pseudo, u.image FROM friend f JOIN user u ON u.id = CASE WHEN f.idSender = ? THEN f.idReceiver ELSE f.idSender END WHERE ? IN (f.idSender,f.idReceiver) AND f.state = 1',
-    request: 'select u.id,u.pseudo,u.image,f.createdAt as date from friend f inner join user u on f.idSender = u.id where idReceiver = ? and f.state = 0',
+    friends: 'SELECT DISTINCT u.id, u.pseudo, u.image FROM friend f JOIN user u ON u.id = CASE WHEN f.idSender = ? THEN f.idReceiver ELSE f.idSender END WHERE ? IN (f.idSender,f.idReceiver) AND f.state = 1',
+    request: 'select DISTINCT u.id,u.pseudo,u.image,f.createdAt as date from friend f inner join user u on f.idSender = u.id where idReceiver = ? and f.state = 0',
     delete: 'delete from friend where (idSender = ? and idReceiver = ?) or (idSender = ? and idReceiver = ?)'
 }
 
