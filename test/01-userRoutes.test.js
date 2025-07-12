@@ -78,4 +78,27 @@ describe('User routes', () => {
     expect(rows.length).to.equal(1);
   });
 
+  it('GET /user/detail -> doit retourner les détails de l\'utilisateur avec ses amis et demandes', async () => {
+    // Préparation : on ajoute un utilisateur ami validé et une demande d'ami
+    await db.query("INSERT INTO user (id, pseudo, password, email, status, image) VALUES (2, 'amiValide', '', 'ami@ok.com', 1, NULL), (3, 'demandeur', '', 'dem@ande.com', 1, NULL)");
+    await db.query("INSERT INTO friend (idSender, idReceiver, state) VALUES (1, 2, 1), (3, 1, 0)");
+
+    const res = await request(app)
+      .get('/user/detail')
+      .set('authorization', token)
+      .send();
+
+    expect(res.statusCode).to.equal(200);
+    expect(res.body).to.have.property('pseudo', 'test2');
+    expect(res.body.friends).to.have.property('validate');
+    expect(res.body.friends.validate).to.be.an('array');
+    expect(res.body.friends.validate.length).to.equal(1);
+    expect(res.body.friends.validate[0]).to.have.property('pseudo', 'amiValide');
+
+    expect(res.body.friends).to.have.property('request');
+    expect(res.body.friends.request).to.be.an('array');
+    expect(res.body.friends.request.length).to.equal(1);
+    expect(res.body.friends.request[0]).to.have.property('pseudo', 'demandeur');
+  });
+
 });

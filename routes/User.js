@@ -11,6 +11,7 @@ const session = new (require('@lib/Session'))();
 
 router.use('/changePassword', require('./User/ChangePassword'));
 router.use('/friend', require('./User/Friends'));
+router.use('/detail', require('./User/UserDetail'));
 
 router.get('', auth(), async (req, res) => {
     const user = await db.oneResult('SELECT id, pseudo, email, image, status FROM user WHERE id = ?', session.getUserId());
