@@ -29,9 +29,14 @@ router.get('/:idUser', auth(), async (req, res) => {
 
 router.put('/:idUser', auth(), async (req, res) => {
     const { idUser } = req.params;
-    const keyExist = [ 'pseudo', 'image', 'email'];
+    const keyExist = [ 'pseudo', 'image'];
 
     if (session.getUserId() != idUser) return res.status(403).send("not good user");
+
+    if (req.body.pseudo !== undefined) {
+      const alreadyExist = await db.exist('SELECT 1 FROM user WHERE pseudo = ?', req.body.pseudo);
+      if (alreadyExist) return res.status(409).send('alreadyExist');
+    }
 
     const afterUpdate = await db.update('user',keyExist,req.body,['id = ?',[idUser]])
 
