@@ -6,7 +6,7 @@ const db = new (require('@lib/DataBase'))();
 
 const { auth, checkFields, authAndOwner, cleanPos } = require('@lib/RouterMisc');
 
-router.post('', checkFields('card'), authAndOwner('workSpace'), async (req, res) => {
+router.post('', checkFields('card'), auth(['1']), async (req, res) => {
     const { idTableau } = req.params;
     const { name, description, color, image, endAt } = req.body;
 
@@ -26,7 +26,7 @@ router.post('', checkFields('card'), authAndOwner('workSpace'), async (req, res)
     });
 })
 
-router.put('/:idCard', authAndOwner('card'), async (req, res) => {
+router.put('/:idCard', auth(['1']), async (req, res) => {
     const { idCard } = req.params;
     const keyExist = [ 'name', 'description', 'color', 'image', 'endAt' , 'state' ];
 
