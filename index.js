@@ -16,7 +16,9 @@ const allowedOrigins = [
   process.env.FRONT_URL,
   'http://localhost:3000',
   process.env.NAME_HOST,
+  process.env.NAME_HOST_SECURE
 ];
+
 // Autorise les requêtes venant du front React
 app.use(cors({
   origin: (origin, callback) => {
