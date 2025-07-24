@@ -8,6 +8,8 @@ const validator = require('validator');
 const db = new Database();
 const { checkFields, auth } = require('@lib/RouterMisc');
 const session = new (require('@lib/Session'))();
+const broadCast = require('@lib/BroadCast');
+
 
 router.use('/changePassword', require('./User/ChangePassword'));
 router.use('/friend', require('./User/Friends'));
@@ -159,5 +161,10 @@ router.get('/sendMailPassword/:email/', async (req, res) => {
 
   return res.send("success");
 });
+
+router.post('/sendSocket', async (req, res) => {
+  const { message } = req.body;
+  broadCast("test1", message)
+})
 
 module.exports = router;

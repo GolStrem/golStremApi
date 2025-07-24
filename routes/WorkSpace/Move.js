@@ -4,9 +4,10 @@ const router = express.Router({ mergeParams: true });
 const db = new (require('@lib/DataBase'))();
 
 const { auth, checkFields, cleanPos } = require('@lib/RouterMisc');
-
+const broadCast = require('@lib/BroadCast');
 
 router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
+    const { idWorkSpace } = req.params
     const { newTableau, newPos, idCard } = req.body
 
 
@@ -33,6 +34,8 @@ router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
 
     cleanPos('card', oldTableau)
     cleanPos('card', newTableau)
+
+    broadCast(`workSpace-${idWorkSpace}`, {moveCard: grouped})
     return res.json(grouped);
 });
 
@@ -40,7 +43,6 @@ router.patch('/tableau', auth([1]), checkFields('moveTableau'), async (req, res)
     const { idWorkSpace } = req.params
     const { oldPos, newPos, idTableau } = req.body
 
-    //système de lock
     const checkLock = await db.exist('select 1 from tableau where pos = ? and id = ?', oldPos, idTableau)
     if (!checkLock) return res.status(409).send("conflict");
 
@@ -49,6 +51,7 @@ router.patch('/tableau', auth([1]), checkFields('moveTableau'), async (req, res)
     await db.query('update tableau set pos=?,idWorkSpace = ? where id = ?', newPos, idWorkSpace, idTableau)
 
     cleanPos('tableau', idWorkSpace)
+    broadCast(`workSpace-${idWorkSpace}`, {moveTableau: req.body})
     return res.send("success");
 });
 

@@ -3,7 +3,7 @@ require('module-alias/register');
 const useragent = require('express-useragent');
 const express = require('express');
 const cors = require('cors');
-
+require('@lib/BroadCast');
 
 const app = express();
 app.use(express.json());
@@ -15,7 +15,7 @@ const allowedOrigins = [
   'http://83.114.227.65:3000',
   process.env.FRONT_URL,
   'http://localhost:3000',
-  process.env.NAME_HOST,
+  process.env.NAME_HOST
 ];
 // Autorise les requêtes venant du front React
 app.use(cors({
