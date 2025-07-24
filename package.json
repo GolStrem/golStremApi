@@ -25,7 +25,8 @@
     "mysql2": "^3.14.1",
     "nodemailer": "^7.0.3",
     "supertest": "^7.1.1",
-    "validator": "^13.15.15"
+    "validator": "^13.15.15",
+    "ws": "^8.18.3"
   },
   "_moduleAliases": {
     "@lib": "lib",

@@ -4,10 +4,12 @@ const router = express.Router({ mergeParams: true });
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
 
+const broadCast = require('@lib/BroadCast');
+
 const { auth, checkFields, authAndOwner, cleanPos } = require('@lib/RouterMisc');
 
 router.post('', checkFields('card'), auth(['1']), async (req, res) => {
-    const { idTableau } = req.params;
+    const { idWorkSpace, idTableau } = req.params;
     const { name, description, color, image, endAt } = req.body;
 
 
@@ -20,6 +22,8 @@ router.post('', checkFields('card'), auth(['1']), async (req, res) => {
     const afterInsert = await db.push('card','idTableau, idOwner, name, description, color, image, state, endAt, pos', [idTableau, session.getUserId(), name, description, color, image, 0, endAt, pos])
 
     const id = afterInsert.insertId;
+
+    broadCast(`workSpace-${idWorkSpace}`, {newCard: {id, idTableau, ...req.body}})
     
     return res.json({
         [id]: req.body
@@ -27,21 +31,24 @@ router.post('', checkFields('card'), auth(['1']), async (req, res) => {
 })
 
 router.put('/:idCard', auth(['1']), async (req, res) => {
-    const { idCard } = req.params;
+    const { idWorkSpace, idTableau, idCard } = req.params;
     const keyExist = [ 'name', 'description', 'color', 'image', 'endAt' , 'state' ];
 
     const afterUpdate = await db.update('card',keyExist,req.body,['id = ?',[idCard]])
 
     if (afterUpdate === false) return res.status(400).send('Malformation');
 
+    broadCast(`workSpace-${idWorkSpace}`, {updateCard: {id: idCard, idTableau, ...req.body}})
+
     return res.send("success");
 })
 
 router.delete('/:idCard', authAndOwner('card'), async (req, res) => {
-    const { idTableau, idCard } = req.params;
+    const { idWorkSpace, idTableau, idCard } = req.params;
 
     await db.query("delete from card WHERE id = ?", idCard)
     cleanPos('card', idTableau)
+    broadCast(`workSpace-${idWorkSpace}`, {deleteCard: {id: idCard}})
     return res.send("success");
 })
 

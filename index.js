@@ -3,7 +3,7 @@ require('module-alias/register');
 const useragent = require('express-useragent');
 const express = require('express');
 const cors = require('cors');
-
+require('@lib/BroadCast');
 
 const app = express();
 app.use(express.json());
