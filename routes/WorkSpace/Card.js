@@ -23,8 +23,8 @@ router.post('', checkFields('card'), auth(['1']), async (req, res) => {
 
     const id = afterInsert.insertId;
 
+    req.body.idOwner = session.getUserId()
     broadCast(`workSpace-${idWorkSpace}`, {newCard: {id, idTableau, ...req.body}})
-    
     return res.json({
         [id]: req.body
     });
