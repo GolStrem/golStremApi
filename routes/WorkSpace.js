@@ -4,6 +4,8 @@ const router = express.Router();
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
 
+const broadCast = require('@lib/BroadCast');
+
 router.use('/', require('@routes/WorkSpace/GetAllWorkSpace'));
 router.use('/:idWorkSpace', require('@routes/WorkSpace/GetDetailWorkSpace'));
 router.use('/:idWorkSpace/tableau', require('@routes/WorkSpace/Tableau'));
@@ -31,7 +33,7 @@ router.put('/:idWorkSpace', authAndOwner('workSpace'), async (req, res) => {
     const afterUpdate = await db.update('workSpace',keyExist,req.body,['id = ?',[idWorkSpace]])
     if (afterUpdate === false) return res.status(400).send('Malformation');
 
-
+    broadCast(`workSpace-${idWorkSpace}`, {updateWorkspace: req.body})
     return res.send("success");
 })
 
