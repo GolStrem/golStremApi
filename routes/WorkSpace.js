@@ -33,7 +33,8 @@ router.put('/:idWorkSpace', authAndOwner('workSpace'), async (req, res) => {
     const afterUpdate = await db.update('workSpace',keyExist,req.body,['id = ?',[idWorkSpace]])
     if (afterUpdate === false) return res.status(400).send('Malformation');
 
-    broadCast(`workSpace-${idWorkSpace}`, {updateWorkspace: req.body})
+    req.body.id = idWorkSpace
+    broadCast(`workSpaceOnly-${idWorkSpace}`, {updateWorkspace: req.body})
     return res.send("success");
 })
 
