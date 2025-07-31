@@ -25,6 +25,7 @@ router.post('', checkFields('card'), auth(['1']), async (req, res) => {
 
     req.body.idOwner = session.getUserId()
     broadCast(`workSpace-${idWorkSpace}`, {newCard: {id, idTableau, ...req.body}})
+    await db.query("update userWorkSpace set news=1 where idUser <> ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     return res.json({
         [id]: req.body
     });
@@ -39,7 +40,7 @@ router.put('/:idCard', auth(['1']), async (req, res) => {
     if (afterUpdate === false) return res.status(400).send('Malformation');
 
     broadCast(`workSpace-${idWorkSpace}`, {updateCard: {id: idCard, idTableau, ...req.body}})
-
+    await db.query("update userWorkSpace set news=1 where idUser <> ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     return res.send("success");
 })
 
@@ -49,6 +50,7 @@ router.delete('/:idCard', authAndOwner('card'), async (req, res) => {
     await db.query("delete from card WHERE id = ?", idCard)
     cleanPos('card', idTableau)
     broadCast(`workSpace-${idWorkSpace}`, {deleteCard: {id: idCard}})
+    await db.query("update userWorkSpace set news=1 where idUser <> ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     return res.send("success");
 })
 

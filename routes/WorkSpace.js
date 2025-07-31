@@ -34,13 +34,13 @@ router.put('/:idWorkSpace', authAndOwner('workSpace'), async (req, res) => {
     if (afterUpdate === false) return res.status(400).send('Malformation');
 
     req.body.id = idWorkSpace
+    await db.query("update userWorkSpace set news=1 where idUser <> ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     broadCast(`workSpaceOnly-${idWorkSpace}`, {updateWorkspace: req.body})
     return res.send("success");
 })
 
 router.delete('/:idWorkSpace', authAndOwner('workSpace'), async (req, res) => {
     const { idWorkSpace } = req.params;
-
 
     await db.query("delete from workSpace WHERE id = ?", idWorkSpace)
     return res.send("success");
@@ -60,6 +60,12 @@ router.post('/:idWorkSpace/user', authAndOwner('workSpace'), async (req, res) =>
 
 
     await db.push('userWorkSpace','idUser, state, idWorkSpace', listValue, 'AS new ON DUPLICATE KEY UPDATE state = new.state')
+
+    const resultWorkSpace = await db.oneResult('select id,name,description,image from workSpace where id = ?', idWorkSpace)
+    for (const { idUser } of userIds) {
+        broadCast(`user-${idUser}`, { newWorkspace: resultWorkSpace });
+    }
+
     return res.send("success");
 })
 
@@ -76,6 +82,7 @@ router.delete('/:idWorkSpace/user/:idUser', auth(), async (req, res) => {
 
 
     await db.query("delete from userWorkSpace WHERE idWorkSpace = ? and idUser = ?", idWorkSpace, idUser)
+    broadCast(`user-${idUser}`, {deleteWorkspace: idWorkSpace})
     return res.send("success");
 })
 
