@@ -32,8 +32,8 @@ router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
         grouped[oldTableau] = []
     }
 
-    cleanPos('card', oldTableau)
-    cleanPos('card', newTableau)
+    await cleanPos('card', oldTableau)
+    await cleanPos('card', newTableau)
 
     broadCast(`workSpace-${idWorkSpace}`, {moveCard: grouped})
     return res.json(grouped);
