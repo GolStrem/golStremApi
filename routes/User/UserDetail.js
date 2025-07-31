@@ -11,7 +11,7 @@ const qryRequest = `${qryParts} f.idSender where f.idReceiver = ? and f.state = 
 
 
 router.get('', auth(), async (req, res) => {
-    const user = await db.oneResult('SELECT u.pseudo, u.email, u.image as avatar, ui.* FROM user u LEFT JOIN userInfo ui ON u.id = ui.userId WHERE id = ?', session.getUserId());
+    const user = await db.oneResult('SELECT u.id, u.pseudo, u.email, u.image as avatar, ui.* FROM user u LEFT JOIN userInfo ui ON u.id = ui.userId WHERE id = ?', session.getUserId());
     if (!user) return res.status(404).send("no user");
     delete user.userId
 

@@ -12,7 +12,7 @@ before(async () => {
   await db.query("DELETE FROM tableau;");
   await db.query("DELETE FROM card;");
   await db.query("DELETE FROM module;");
-  await db.query("SET FOREIGN_KEY_CHECKS = 1")
+  await db.query("SET FOREIGN_KEY_CHECKS = 1");
   await db.query("INSERT INTO user (id, pseudo, password, email, status, image) VALUES (1, 'invite', '$2b$10$4EEjLSLljyGUISGGPmitzeSGWALRZU3NVkyBewHGroEyGIeua46Iu', 'test@test.com', 1, NULL);");
   await db.query("INSERT INTO session ( UserId, token, ip) VALUES (1, '8a015085551a954d', '::ffff:127.0.0.1');");
 });

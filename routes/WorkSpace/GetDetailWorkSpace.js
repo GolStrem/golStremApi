@@ -52,7 +52,7 @@ router.get('',auth(), async (req, res) => {
         tableauxById[idTableau]?.card.push(cardSansIdTableau);
     });
 
-
+    await db.query("update userWorkSpace set news=0 where idUser = ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     res.json(response);
 });
 

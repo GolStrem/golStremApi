@@ -21,6 +21,7 @@ router.post('', checkFields('tableau'), auth([1]), async (req, res) => {
 
     broadCast(`workSpace-${idWorkSpace}`, {newTableau: {id, ...req.body}})
     
+    await db.query("update userWorkSpace set news=1 where idUser <> ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     return res.json({
         [id]: req.body
     });
@@ -34,6 +35,7 @@ router.put('/:idTableau', authAndOwner('tableau'), async (req, res) => {
     if (afterUpdate === false) return res.status(400).send('Malformation');
 
     broadCast(`workSpace-${idWorkSpace}`, {updateTableau: {id: idTableau, ...req.body}})
+    await db.query("update userWorkSpace set news=1 where idUser <> ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     return res.send("success");
 })
 
@@ -42,6 +44,7 @@ router.delete('/:idTableau', authAndOwner('tableau'), async (req, res) => {
     await db.query("delete from tableau WHERE id = ?", idTableau)
     cleanPos('tableau', idWorkSpace)
     broadCast(`workSpace-${idWorkSpace}`, {deleteTableau: {id: idTableau}})
+    await db.query("update userWorkSpace set news=1 where idUser <> ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     return res.send("success");
 })
 

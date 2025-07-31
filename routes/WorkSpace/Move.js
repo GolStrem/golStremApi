@@ -5,6 +5,7 @@ const db = new (require('@lib/DataBase'))();
 
 const { auth, checkFields, cleanPos } = require('@lib/RouterMisc');
 const broadCast = require('@lib/BroadCast');
+const session = new (require('@lib/Session'))();
 
 router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
     const { idWorkSpace } = req.params
@@ -36,6 +37,7 @@ router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
     await cleanPos('card', newTableau)
 
     broadCast(`workSpace-${idWorkSpace}`, {moveCard: grouped})
+    await db.query("update userWorkSpace set news=1 where idUser <> ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     return res.json(grouped);
 });
 
@@ -52,6 +54,7 @@ router.patch('/tableau', auth([1]), checkFields('moveTableau'), async (req, res)
 
     cleanPos('tableau', idWorkSpace)
     broadCast(`workSpace-${idWorkSpace}`, {moveTableau: req.body})
+    await db.query("update userWorkSpace set news=1 where idUser <> ? and idWorkspace = ?", session.getUserId(), idWorkSpace)
     return res.send("success");
 });
 
