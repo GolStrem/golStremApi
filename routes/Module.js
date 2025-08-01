@@ -3,7 +3,7 @@ const router = express.Router();
 
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
-const { auth, checkFields } = require('@lib/RouterMisc');
+const { auth, checkFields, move } = require('@lib/RouterMisc');
 
 // Création d'un module
 router.post('', checkFields('module'), auth(), async (req, res) => {
@@ -54,6 +54,14 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
         type, targetId
     );
     return res.json(modules);
+});
+
+router.patch('/move', auth(), checkFields('moveModule'), async (req, res) => {
+    const { newPos, idModule } = req.body
+
+    const result = await move('module', newPos, idModule, ['type','targetId'])
+    if (!result) return res.status(409).send("conflict");
+    return res.send("success");
 });
 
 module.exports = router;
