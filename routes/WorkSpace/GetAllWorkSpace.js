@@ -8,8 +8,8 @@ const { auth } = require('@lib/RouterMisc');
 
 
 const qryPartsWorkSpaceUser = {
-    begin : "SELECT uws.idWorkSpace, uws.state, uws.news FROM userWorkSpace uws inner JOIN userWorkSpace uws2 ON uws.idWorkSpace = uws2.idWorkSpace ",
-    where : "WHERE uws2.idUser = ? ",
+    begin : "SELECT uws.idWorkSpace, uws.state, uws.news FROM userWorkSpace uws ",
+    where : "WHERE uws.idUser = ? ",
     limit : "LIMIT ? OFFSET ?"
 }
 

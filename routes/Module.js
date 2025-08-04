@@ -3,29 +3,42 @@ const router = express.Router();
 
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
-const { auth, checkFields, move } = require('@lib/RouterMisc');
+const { auth, checkFields, move, cleanPosPoly } = require('@lib/RouterMisc');
 
-// Création d'un module
 router.post('', checkFields('module'), auth(), async (req, res) => {
-    const { type, targetId, name, extra } = req.body;    
+    let { type, targetId, name, extra } = req.body;
 
-    const resultPos = await db.oneResult(
-        'SELECT COUNT(1) as nbr FROM module WHERE type = ? AND targetId = ?',
-        type, targetId
+    try {
+        extra = typeof extra === 'string' ? JSON.parse(extra) : (extra || {});
+    } catch (err) {}
+
+    const old = await db.oneResult(
+        'SELECT extra FROM moduleExtra WHERE type = ? AND targetId = ? AND name = ? ORDER BY createdAt DESC LIMIT 1',
+        type, targetId, name
     );
-    const pos = resultPos ? resultPos.nbr : 0;
+
+    if (old?.extra) {
+        try {
+            const oldExtra = JSON.parse(old.extra);
+            extra = { ...oldExtra, ...extra };
+        } catch (err) {}
+
+    }
+
+    const resultPos = await db.oneResult('SELECT COUNT(1) as nbr FROM module WHERE type = ? AND targetId = ?', type, targetId);
+    const pos = resultPos?.nbr || 0;
 
     const afterInsert = await db.push(
         'module',
         'type, targetId, name, extra, pos',
-        [type, targetId, name, extra, pos]
+        [type, targetId, name, JSON.stringify(extra), pos]
     );
 
-    const id = afterInsert.insertId;
-    req.body.pos = pos
-
-    return res.json({ [id]: req.body });
+    req.body.pos = pos;
+    req.body.extra = JSON.stringify(extra);
+    return res.json({ [afterInsert.insertId]: req.body });
 });
+
 
 router.put('/:idModule', auth(), async (req, res) => {
     const { idModule } = req.params;
@@ -40,9 +53,15 @@ router.put('/:idModule', auth(), async (req, res) => {
 router.delete('/:idModule', auth(), async (req, res) => {
     const { idModule } = req.params;
 
-    await db.query('DELETE FROM module WHERE id = ?', idModule);
-    // mettre un cleanPos !!!
+    const moduleData = await db.oneResult('SELECT type, targetId, name, extra FROM module WHERE id = ?',idModule);
 
+    if (moduleData) { 
+        await db.push('moduleExtra','type, targetId, name, extra',[moduleData.type, moduleData.targetId, moduleData.name, moduleData.extra]);
+    }
+
+    await db.query('DELETE FROM module WHERE id = ?', idModule);
+    
+    await cleanPosPoly('module', ['type','targetId'], [moduleData.type, moduleData.targetId]);
     return res.send('success');
 });
 
