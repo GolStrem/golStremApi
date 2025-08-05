@@ -52,8 +52,8 @@ router.post('/:idWorkSpace/user', authAndOwner('workSpace'), async (req, res) =>
     const userIds = Array.isArray(req.body) ? req.body : [req.body]
 
 
-    const result = await db.oneResult('SELECT count(1) as nbr FROM user WHERE id in (?)', userIds.map(item => item.idUser));
-    if (result['nbr'] !== userIds.length) return res.status(404).send('User unknown');
+    const result = await db.query('SELECT id,pseudo,image FROM user WHERE id in (?)', userIds.map(item => item.idUser));
+    if (result.length !== userIds.length) return res.status(404).send('User unknown');
     
     userIds.forEach(obj => obj.extra = idWorkSpace);
     const listValue = userIds.map(obj => Object.values(obj));
@@ -63,7 +63,14 @@ router.post('/:idWorkSpace/user', authAndOwner('workSpace'), async (req, res) =>
 
     const resultWorkSpace = await db.oneResult('select id,name,description,image from workSpace where id = ?', idWorkSpace)
     for (const { idUser } of userIds) {
+        const user = result.find(u => u.id === idUser);
         broadCast(`user-${idUser}`, { newWorkspace: resultWorkSpace });
+        broadCast(`workSpaceOnly-${idWorkSpace}`, {
+            createWorkSpaceUser: {
+                idWorkSpace: idWorkSpace,
+                user: user
+            }
+        });
     }
 
     return res.send("success");
@@ -83,6 +90,7 @@ router.delete('/:idWorkSpace/user/:idUser', auth(), async (req, res) => {
 
     await db.query("delete from userWorkSpace WHERE idWorkSpace = ? and idUser = ?", idWorkSpace, idUser)
     broadCast(`user-${idUser}`, {deleteWorkspace: idWorkSpace})
+    broadCast(`workSpaceOnly-${idWorkSpace}`, {deleteWorkSpaceUser: {idWorkSpace: idWorkSpace, idUser: idUser}})
     return res.send("success");
 })
 
@@ -95,6 +103,7 @@ router.put('/:idWorkSpace/user/:idUser', authAndOwner('workSpace'), async (req, 
 
 
     await db.query("update userWorkSpace set state = ? WHERE idWorkSpace = ? and idUser = ?", state, idWorkSpace, idUser)
+    broadCast(`workSpaceOnly-${idWorkSpace}`, {updateUserWorkSpace: {idUser: idUser, idWorkSpace: idWorkSpace, state: state}})
     return res.send("success");
 })
 

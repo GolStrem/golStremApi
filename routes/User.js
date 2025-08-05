@@ -44,7 +44,7 @@ router.put('/:idUser', auth(), async (req, res) => {
     const afterUpdate = await db.update('user',keyExist,req.body,['id = ?',[idUser]])
 
     if (afterUpdate === false) return res.status(400).send('Malformation');
-
+    broadCast(`user-${idUser}`, {updateUser: {id: idUser, user: req.body}})
     return res.send("success");
 })
 
