@@ -7,7 +7,7 @@ const { auth, checkFields, cleanPos, move } = require('@lib/RouterMisc');
 const broadCast = require('@lib/BroadCast');
 const session = new (require('@lib/Session'))();
 
-router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
+router.patch('/card', auth('workspace',[1]), checkFields('moveCard'), async (req, res) => {
     const { idWorkSpace } = req.params
     const { newTableau, newPos, idCard } = req.body
 
@@ -41,7 +41,7 @@ router.patch('/card', auth([1]), checkFields('moveCard'), async (req, res) => {
     return res.json(grouped);
 });
 
-router.patch('/tableau', auth([1]), checkFields('moveTableau'), async (req, res) => {
+router.patch('/tableau', auth('workspace',[1]), checkFields('moveTableau'), async (req, res) => {
     const { idWorkSpace } = req.params
     const { newPos, idTableau } = req.body
 

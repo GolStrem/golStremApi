@@ -37,6 +37,7 @@ app.use('/user', require('@routes/User'));
 app.use('/userInfo', require('@routes/UserInfo'));
 app.use('/workSpace', require('@routes/WorkSpace'));
 app.use('/module', require('@routes/Module'));
+app.use('/fiche', require('@routes/Fiche'));
 
 // Lance le serveur uniquement si on n’est **pas** en mode test
 if (process.env.NODE_ENV !== 'test') {
