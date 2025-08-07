@@ -108,7 +108,12 @@ router.get('/validMail/:email/:token', async (req, res) => {
   const goodToken = await db.exist('delete FROM token WHERE extra = ? and token = ? and type = ? and endAt > now()', email, token, 'createUser');
   if(!goodToken) return res.status(401).send('token/mail incorrects');
 
-  db.exist('update user set status = ? where email = ?', 1, email);
+  const id = (await db.oneResult('select id from user where email = ?', email)).id
+
+  db.query('update user set status = ? where id = ?', 1, id);
+  db.query('insert into module(type, targetId, name, pos) values (?,?,?,?)', 0, id, 'workspace', 0)
+  db.query('insert into userInfo(userId) values (?)', id)
+
 
   if (req.useragent.browser !== "PostmanRuntime") {
     return res.redirect(`${process.env.FRONT_URL}`);
