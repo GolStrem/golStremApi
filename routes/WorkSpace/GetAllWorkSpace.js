@@ -36,6 +36,9 @@ router.get('', auth(), async (req, res) => {
     }
 
     const resultUws = await db.query(qry, ...param)
+    if(resultUws.length === 0) {
+        return res.json({})
+    }
 
     for (const item of resultUws) {
         response[item.idWorkSpace] = {news: item.news};
