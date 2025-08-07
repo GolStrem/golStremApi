@@ -8,7 +8,7 @@ const broadCast = require('@lib/BroadCast');
 
 const { auth, checkFields, authAndOwner, cleanPos } = require('@lib/RouterMisc');
 
-router.post('', checkFields('card'), auth(['1']), async (req, res) => {
+router.post('', checkFields('card'), auth('workspace',['1']), async (req, res) => {
     const { idWorkSpace, idTableau } = req.params;
     const { name, description, color, image, endAt } = req.body;
 
@@ -31,7 +31,7 @@ router.post('', checkFields('card'), auth(['1']), async (req, res) => {
     });
 })
 
-router.put('/:idCard', auth(['1']), async (req, res) => {
+router.put('/:idCard', auth('workspace',['1']), async (req, res) => {
     const { idWorkSpace, idTableau, idCard } = req.params;
     const keyExist = [ 'name', 'description', 'color', 'image', 'endAt' , 'state' ];
 
@@ -54,7 +54,7 @@ router.delete('/:idCard', authAndOwner('card'), async (req, res) => {
     return res.send("success");
 })
 
-router.get('/:idCard', auth(['0','1']), async (req, res) => {
+router.get('/:idCard', auth('workspace',['0','1']), async (req, res) => {
     const { idCard } = req.params;
 
     const card = await db.oneResult('SELECT image,state,color,name,description,createdAt,endAt FROM card WHERE id = ?', idCard);

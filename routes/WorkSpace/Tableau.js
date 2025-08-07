@@ -9,7 +9,7 @@ const { auth, checkFields, authAndOwner, cleanPos } = require('@lib/RouterMisc')
 router.use('/:idTableau/card', require('@routes/WorkSpace/Card'));
 
 
-router.post('', checkFields('tableau'), auth([1]), async (req, res) => {
+router.post('', checkFields('tableau'), auth('workspace',[1]), async (req, res) => {
     const { idWorkSpace } = req.params;
     const { color, name, image } = req.body;
 

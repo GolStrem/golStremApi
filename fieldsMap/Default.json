@@ -8,5 +8,7 @@
     "create": [ "pseudo", "password", "email"],
     "friend": ["idReceiver"],
     "module": ["name", "type", "targetId"],
-    "moveModule": ["newPos", "idModule"]
+    "moveModule": ["newPos", "idModule"],
+    "fiche": ["name", "image"],
+    "moveFiche": [ "type", "targetId", "pos" ]
 }
