@@ -67,7 +67,7 @@ describe('Fiche routes', () => {
     expect(res.statusCode).to.equal(200);
     expect(res.text).to.equal('success');
 
-    const row = await db.oneResult('SELECT pos FROM fichePos WHERE idFiche = ?', ficheId);
+    const row = await db.oneResult('SELECT pos FROM fichePos WHERE idFiche = ? and targetId = ?', ficheId, 1);
     expect(row.pos).to.equal(0);
   });
 
@@ -78,7 +78,7 @@ describe('Fiche routes', () => {
     expect(res.statusCode).to.equal(200);
     expect(res.text).to.equal('success');
 
-    const exists = await db.exist('SELECT 1 FROM fiche WHERE id = ?', ficheId);
+    const exists = await db.exist('SELECT 1 FROM fiche WHERE id = ? and deletedAt is null', ficheId);
     expect(exists).to.be.false;
   });
 });
