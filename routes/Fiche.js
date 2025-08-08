@@ -55,7 +55,8 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
 router.delete('/:id', auth('fiche', 2), async (req, res) => {
     const { id } = req.params;
 
-    await db.query('delete from fiche where id = ?', id)
+    await db.query('UPDATE fiche SET deletedAt = DATE_ADD(NOW(), INTERVAL 7 DAY) WHERE id = ?', id );
+
 
     const listFichePos = await db.query('SELECT type,targetId FROM fichePos WHERE idFiche = ? GROUP BY TYPE,targetId', id)
 
@@ -83,6 +84,23 @@ router.patch('/move/:id', checkFields('moveFiche'), auth('fiche', 2), async(req,
 
     movePos(type, targetId, id, pos) 
     cleanPos(type, targetId)
+
+    return res.send("success");
+})
+
+router.patch('/:id', auth('fiche', 2), async(req, res) => {
+    const { id } = req.params;
+    await db.query("update fiche set deletedAt = null where id = ?", id)
+    const fiche = await db.oneResult("select * from fiche where id = ?", id)
+    
+
+    if (fiche.idOwner !== undefined) {
+        const posOwner = await newPos('owner', fiche.idOwner, id)
+    }
+
+    if (fiche.idUnivers !== undefined) {
+        const posUnivers = await newPos('univers', fiche.idUnivers, id)
+    }
 
     return res.send("success");
 })
