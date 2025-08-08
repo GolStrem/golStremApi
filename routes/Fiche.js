@@ -25,10 +25,11 @@ router.post('', checkFields('fiche'), auth(), async (req, res) => {
 
     const id = afterInsert.id;
     if (idOwner !== undefined) {
-        newPos('owner', idOwner, id)
+        const posOwner = await newPos('owner', idOwner, id)
+        afterInsert.pos = posOwner
     }
     if (idUnivers !== undefined) {
-        newPos('univers', idUnivers, id)
+        const posUnivers = await newPos('univers', idUnivers, id)
     }
 
     return res.json(afterInsert);
@@ -46,7 +47,7 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
         //@todo univers
     }
 
-    const fiche = await db.query(`${qryFiche} where id${type} = ? and visibility <= ? ORDER BY fp.pos`, type, targetId, targetId, visibility )
+    const fiche = await db.query(`${qryFiche} where id${type} = ? and visibility <= ? and deletedAt is null ORDER BY fp.pos`, type, targetId, targetId, visibility )
 
     return res.json(fiche)
 })
@@ -57,11 +58,11 @@ router.delete('/:id', auth('fiche', 2), async (req, res) => {
     await db.query('delete from fiche where id = ?', id)
 
     const listFichePos = await db.query('SELECT type,targetId FROM fichePos WHERE idFiche = ? GROUP BY TYPE,targetId', id)
+
+    await db.query('delete from fichePos where idFiche = ?', id)
     await Promise.all(
         listFichePos.map(({ type, targetId }) => cleanPos(type, targetId))
     );
-
-    await db.query('delete from fichePos where idFiche = ?', id)
     return res.send("success");
 })
 
