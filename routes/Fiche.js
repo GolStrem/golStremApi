@@ -7,7 +7,7 @@ const { auth, checkFields } = require('@lib/RouterMisc');
 const { newPos, movePos, cleanPos } = require('@lib/MoveFiche');
 
 const qryFriends = 'SELECT COUNT(1) as nbr FROM friend f WHERE ((f.idSender = ? AND f.idReceiver = ?) OR (f.idSender = ? AND f.idReceiver = ?))AND f.state = 1 LIMIT 1'
-const qryFiche = 'SELECT f.* from fiche f INNER JOIN fichePos fp ON f.id = fp.idFiche AND fp.type = ? AND fp.targetId = ?'
+const qryFiche = 'SELECT f.*,fp.pos from fiche f INNER JOIN fichePos fp ON f.id = fp.idFiche AND fp.type = ? AND fp.targetId = ?'
 
 router.post('', checkFields('fiche'), auth(), async (req, res) => {
     const { idOwner, name, color, image, idUnivers, visibility } = req.body;
