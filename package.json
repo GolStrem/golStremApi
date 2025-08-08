@@ -32,7 +32,8 @@
     "@lib": "lib",
     "@routes": "routes",
     "@mail": "mail",
-    "@fieldsMap": "fieldsMap"
+    "@fieldsMap": "fieldsMap",
+    "@monitoring": "monitoring"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
