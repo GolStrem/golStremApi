@@ -15,7 +15,8 @@ router.get('', auth(), async (req, res) => {
 });
 
 router.put('', auth(), async (req, res) => {
-    const keyExist = ['theme','lastWorkspace', 'color', 'banner', 'darkLock', 'lightLock']
+
+    const keyExist = ['theme','lastWorkspace', 'color', 'banner', 'darkLock', 'lightLock', 'hideClock']
     const keys = Object.keys(req.body)
 
     if(!isSubset(keys,keyExist)) return res.status(400).send('Malformation');
