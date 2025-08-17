@@ -40,7 +40,7 @@ router.post('', checkFields('module'), auth(), async (req, res) => {
 });
 
 
-router.put('/:idModule', auth(), async (req, res) => {
+router.put('/:idModule', auth('module'), async (req, res) => {
     const { idModule } = req.params;
     const keyExist = ['name', 'extra', 'type', 'targetId'];
 
@@ -50,7 +50,7 @@ router.put('/:idModule', auth(), async (req, res) => {
     return res.send('success');
 });
 
-router.delete('/:idModule', auth(), async (req, res) => {
+router.delete('/:idModule', auth('module'), async (req, res) => {
     const { idModule } = req.params;
 
     const moduleData = await db.oneResult('SELECT type, targetId, name, extra FROM module WHERE id = ?',idModule);
@@ -75,7 +75,7 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
     return res.json(modules);
 });
 
-router.patch('/move', auth(), checkFields('moveModule'), async (req, res) => {
+router.patch('/move', auth('module'), checkFields('moveModule'), async (req, res) => {
     const { newPos, idModule } = req.body
 
     const result = await move('module', newPos, idModule, ['type','targetId'])
