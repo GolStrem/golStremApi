@@ -50,6 +50,32 @@ router.put('/:idModule', auth('module'), async (req, res) => {
     return res.send('success');
 });
 
+router.post('/:idModule/:idExtra', auth('module'), async (req, res) => {
+    const { idModule, idExtra } = req.params;
+    const { value } = req.body;
+
+    const extra = await db.oneResult('SELECT extra FROM module WHERE id = ?', idModule);
+    const jsonExtra = JSON.parse(extra['extra'])
+    jsonExtra[idExtra] = value
+    await db.query('update module set extra = ? where id = ?', JSON.stringify(jsonExtra), idModule)
+
+
+    return res.send('success');
+});
+
+router.put('/:idModule/:idExtra', auth('module'), async (req, res) => {
+    const { idModule, idExtra } = req.params;
+    const { value } = req.body;
+
+    const extra = await db.oneResult('SELECT extra FROM module WHERE id = ?', idModule);
+    const jsonExtra = JSON.parse(extra['extra'])
+    jsonExtra[idExtra] = value
+    await db.query('update module set extra = ? where id = ?', JSON.stringify(jsonExtra), idModule)
+
+
+    return res.send('success');
+});
+
 router.delete('/:idModule', auth('module'), async (req, res) => {
     const { idModule } = req.params;
 
@@ -64,6 +90,19 @@ router.delete('/:idModule', auth('module'), async (req, res) => {
     await cleanPosPoly('module', ['type','targetId'], [moduleData.type, moduleData.targetId]);
     return res.send('success');
 });
+
+router.delete('/:idModule/:idExtra', auth('module'), async (req, res) => {
+    const { idModule, idExtra } = req.params;
+
+    const extra = await db.oneResult('SELECT extra FROM module WHERE id = ?', idModule);
+    const jsonExtra = JSON.parse(extra['extra'])
+    delete jsonExtra[idExtra]
+
+    await db.query('update module set extra = ? where id = ?', JSON.stringify(jsonExtra), idModule)
+
+    return res.send('success');
+});
+
 
 // Récupération des modules de l'utilisateur
 router.get('/:type/:targetId', auth(), async (req, res) => {
