@@ -77,6 +77,16 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
     return res.json(modules);
 });
 
+// Récupération des modules de l'utilisateur
+router.get('/alias', auth(), async (req, res) => {
+    const cleaned = req.body.map(s => s.replace(/\$\$/g, ''));
+    const result = await db.query('select id,text from moduleKey where id in (?)', cleaned)
+    const obj = Object.fromEntries(
+        result.map(({ id, text }) => [String(id), text])
+      );
+    return res.json(obj);
+});
+
 router.patch('/move', auth('module'), checkFields('moveModule'), async (req, res) => {
     const { newPos, idModule } = req.body
 
