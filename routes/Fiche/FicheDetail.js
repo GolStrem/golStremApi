@@ -3,8 +3,7 @@ const router = express.Router();
 
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
-const { auth, checkFields } = require('@lib/RouterMisc');
-const { newPos, movePos, cleanPos } = require('@lib/MoveFiche');
+const { auth } = require('@lib/RouterMisc');
 
 
 
@@ -13,7 +12,7 @@ router.get('/:id', auth('fiche'), async (req, res) => {
 
     const userId = session.getUserId()
     const fiche = await db.oneResult(
-        'SELECT f.idOwner,f.name,f.image,f.idUnivers,u.name,f.createdAt,f.color,f.visibility FROM fiche f left join univers u on u.id = f.idUnivers WHERE f.id = ?', 
+        'SELECT f.idOwner,f.name,f.image,f.idUnivers,u.name as nameUnivers,f.createdAt,f.color,f.visibility FROM fiche f left join univers u on u.id = f.idUnivers WHERE f.id = ?', 
     id)
 
     if (!fiche) return res.status(404).send("no fiche");

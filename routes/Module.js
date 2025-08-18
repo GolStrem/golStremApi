@@ -79,6 +79,9 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
 
 // Récupération des modules de l'utilisateur
 router.get('/alias', auth(), async (req, res) => {
+    if (!Array.isArray(req.body) || req.body.length === 0) {
+        return res.json({});
+    }
     const cleaned = req.body.map(s => s.replace(/\$\$/g, ''));
     const result = await db.query('select id,text from moduleKey where id in (?)', cleaned)
     const obj = Object.fromEntries(
