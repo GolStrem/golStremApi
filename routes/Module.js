@@ -4,6 +4,7 @@ const router = express.Router();
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
 const { auth, checkFields, move, cleanPosPoly } = require('@lib/RouterMisc');
+const { check } = require('@lib/Util');
 
 router.post('', checkFields('module'), auth(), async (req, res) => {
     let { type, targetId, name, extra } = req.body;
@@ -40,7 +41,7 @@ router.post('', checkFields('module'), auth(), async (req, res) => {
 });
 
 
-router.put('/:idModule', auth(), async (req, res) => {
+router.put('/:idModule', auth('module'), async (req, res) => {
     const { idModule } = req.params;
     const keyExist = ['name', 'extra', 'type', 'targetId'];
 
@@ -50,7 +51,7 @@ router.put('/:idModule', auth(), async (req, res) => {
     return res.send('success');
 });
 
-router.delete('/:idModule', auth(), async (req, res) => {
+router.delete('/:idModule', auth('module'), async (req, res) => {
     const { idModule } = req.params;
 
     const moduleData = await db.oneResult('SELECT type, targetId, name, extra FROM module WHERE id = ?',idModule);
@@ -65,6 +66,7 @@ router.delete('/:idModule', auth(), async (req, res) => {
     return res.send('success');
 });
 
+
 // Récupération des modules de l'utilisateur
 router.get('/:type/:targetId', auth(), async (req, res) => {
     const { type, targetId } = req.params;
@@ -75,12 +77,80 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
     return res.json(modules);
 });
 
-router.patch('/move', auth(), checkFields('moveModule'), async (req, res) => {
+// Récupération des modules de l'utilisateur
+router.get('/alias', auth(), async (req, res) => {
+    if (!Array.isArray(req.body) || req.body.length === 0) {
+        return res.json({});
+    }
+    const cleaned = req.body.map(s => s.replace(/\$\$/g, ''));
+    const result = await db.query('select id,text from moduleKey where id in (?)', cleaned)
+    const obj = Object.fromEntries(
+        result.map(({ id, text }) => [String(id), text])
+      );
+    return res.json(obj);
+});
+
+router.patch('/move', auth('module'), checkFields('moveModule'), async (req, res) => {
     const { newPos, idModule } = req.body
 
     const result = await move('module', newPos, idModule, ['type','targetId'])
     if (!result) return res.status(409).send("conflict");
     return res.send("success");
 });
+
+
+
+
+
+async function keyModule(oldExtra = '', newExtra = '') {
+    if (oldExtra === newExtra) {
+        return newExtra
+    }
+    const regex = /^\$\$([^ ]+)\$\$$/;
+    const oldExtraId = check(oldExtra, regex)
+    if (newExtra.length > 200) {
+        if(oldExtraId === false) {
+            const afterInsert = await db.push('moduleKey', 'text', [newExtra]);
+            return `$$${afterInsert.insertId}$$`
+        }else{
+            await db.query('update moduleKey set text = ? where id = ?', newExtra, oldExtraId)
+            return oldExtra
+        }
+    }else{
+        if(oldExtraId !== false) {
+            await db.query('delete from moduleKey where id = ?', oldExtraId)
+        }
+        return newExtra
+    }
+}
+
+const postPutExtra = async (req, res) => {
+    const { idModule, idExtra } = req.params;
+    const { value } = req.body;
+
+    const extra = await db.oneResult('SELECT extra FROM module WHERE id = ?', idModule);
+    const jsonExtra = JSON.parse(extra['extra'])
+    jsonExtra[idExtra] = await keyModule(jsonExtra[idExtra], value)
+    await db.query('update module set extra = ? where id = ?', JSON.stringify(jsonExtra), idModule)
+
+
+    return res.send('success');
+}
+router.post('/:idModule/:idExtra', auth('module'), postPutExtra);
+router.put('/:idModule/:idExtra', auth('module'), postPutExtra);
+
+router.delete('/:idModule/:idExtra', auth('module'), async (req, res) => {
+    const { idModule, idExtra } = req.params;
+
+    const extra = await db.oneResult('SELECT extra FROM module WHERE id = ?', idModule);
+    const jsonExtra = JSON.parse(extra['extra'])
+    keyModule(jsonExtra[idExtra], undefined)
+    delete jsonExtra[idExtra]
+
+    await db.query('update module set extra = ? where id = ?', JSON.stringify(jsonExtra), idModule)
+
+    return res.send('success');
+});
+
 
 module.exports = router;

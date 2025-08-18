@@ -35,6 +35,8 @@ router.post('', checkFields('fiche'), auth(), async (req, res) => {
     return res.json(afterInsert);
 })
 
+router.use('/detail', require('@routes/Fiche/FicheDetail'));
+
 router.get('/:type/:targetId', auth(), async (req, res) => {
     const { type, targetId } = req.params;
 
