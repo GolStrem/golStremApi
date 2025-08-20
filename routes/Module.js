@@ -45,6 +45,27 @@ router.put('/:idModule', auth('module'), async (req, res) => {
     const { idModule } = req.params;
     const keyExist = ['name', 'extra', 'type', 'targetId'];
 
+    if (req.body.extra) {
+            // Récupération de l'extra actuel
+            const result = await db.oneResult('SELECT extra FROM module WHERE id = ?', [idModule]);
+            const dbExtra = result?.extra ? JSON.parse(result.extra) : {};
+            const reqExtra = typeof req.body.extra === 'string' ? JSON.parse(req.body.extra) : req.body.extra;
+
+            for (const [idExtra, oldValue] of Object.entries(dbExtra)) {
+                if (!(idExtra in reqExtra)) {
+                    await keyModule(oldValue, undefined);
+                }
+            }
+
+            const newExtra = {};
+            for (const [idExtra, newValue] of Object.entries(reqExtra)) {
+                const oldValue = dbExtra[idExtra];
+                newExtra[idExtra] = await keyModule(oldValue, newValue);
+            }
+
+            req.body.extra = JSON.stringify(newExtra);
+        }
+
     const afterUpdate = await db.update('module', keyExist, req.body, ['id = ?', [idModule]]);
     if (afterUpdate === false) return res.status(400).send('Malformation');
 
@@ -78,7 +99,7 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
 });
 
 // Récupération des modules de l'utilisateur
-router.get('/alias', auth(), async (req, res) => {
+router.post('/alias', auth(), async (req, res) => {
     if (!Array.isArray(req.body) || req.body.length === 0) {
         return res.json({});
     }
