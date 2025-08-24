@@ -3,11 +3,11 @@ const router = express.Router();
 
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
-const { auth } = require('@lib/RouterMisc');
+const { authPublic } = require('@lib/RouterMisc');
 
 
 
-router.get('/:id', auth('fiche'), async (req, res) => {
+router.get('/:id', authPublic('fiche'), async (req, res) => {
     const { id } = req.params;
 
     const userId = session.getUserId()
