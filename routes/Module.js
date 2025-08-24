@@ -99,7 +99,7 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
 });
 
 // Récupération des modules de l'utilisateur
-router.post('/alias', auth(), async (req, res) => {
+router.post('/alias', async (req, res) => {
     if (!Array.isArray(req.body) || req.body.length === 0) {
         return res.json({});
     }
