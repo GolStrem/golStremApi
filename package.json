@@ -33,7 +33,7 @@
     "@routes": "routes",
     "@mail": "mail",
     "@fieldsMap": "fieldsMap",
-    "@monitoring": "monitoring"
+    "@middleware": "middleWare"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"

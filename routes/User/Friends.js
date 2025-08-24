@@ -23,7 +23,7 @@ router.get('/request', auth(), async (req, res) => {
 
 router.post('', checkFields('friend'), auth(), async (req, res) => {
     const { idReceiver } = req.body;
-    if (session.getUserId == idReceiver) return res.status(409).send("curly")
+    if (session.getUserId() == idReceiver) return res.status(409).send("curly")
 
     const alreadySend = await db.exist('select 1 from friend where idSender = ? and idReceiver = ?', session.getUserId(), idReceiver)
     if (alreadySend) return res.status(409).send('alreadyExist');

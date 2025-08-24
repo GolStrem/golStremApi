@@ -9,7 +9,8 @@ const app = express();
 app.use(express.json());
 app.use(useragent.express());
 const port = 8000;
-const { countHttpMiddleware } = require('@monitoring/Middleware');
+const { countHttpMiddleware } = require('@middleware/Monitoring');
+const { newRequestMiddleware } = require('@middleware/NewRequest');
 
 
 const allowedOrigins = [
@@ -34,13 +35,14 @@ app.use(cors({
 
 
 app.use(countHttpMiddleware);
+app.use(newRequestMiddleware);
 app.use('/user', require('@routes/User'));
 app.use('/userInfo', require('@routes/UserInfo'));
 app.use('/workSpace', require('@routes/WorkSpace'));
 app.use('/module', require('@routes/Module'));
 app.use('/fiche', require('@routes/Fiche'));
 
-app.use('/monitoring', require('@monitoring/Route'));
+app.use('/monitoring', require('@routes/Monitoring'));
 
 // Lance le serveur uniquement si on n’est **pas** en mode test
 if (process.env.NODE_ENV !== 'test') {

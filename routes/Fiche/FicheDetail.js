@@ -20,6 +20,8 @@ router.get('/:id', authPublic('fiche'), async (req, res) => {
     fiche.droit = 'read'
     fiche.module = module
 
+    console.log(userId)
+
 
     if(fiche.idOwner == userId ||
         (fiche.idOwner === null && (await db.exist('select 1 from userUnivers where idUnivers = ? and idUser = ? and state >= 2', fiche.idUnivers, userId)))
