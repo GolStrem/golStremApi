@@ -150,6 +150,8 @@ router.get('', auth(), async (req, res) => {
     dataQry.values['offset'] = p * limit;
 
     const listUnivers = await db.namedQuery(qry, dataQry.values);
+    if (listUnivers.length === 0) return res.json([]);
+
     const listUniversId = listUnivers.map(u => u.id);
 
     const lastResult = await db.query(qryUnivers, listUniversId);
