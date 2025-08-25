@@ -44,7 +44,7 @@ app.use('/workSpace', require('@routes/WorkSpace'));
 app.use('/module', require('@routes/Module'));
 app.use('/fiche', require('@routes/Fiche'));
 app.use('/univers', require('@routes/Univers'));
-
+app.use('/data', require('@routes/Data'));
 app.use('/monitoring', require('@routes/Monitoring'));
 
 // Lance le serveur uniquement si on n’est **pas** en mode test
