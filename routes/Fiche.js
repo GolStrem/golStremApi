@@ -57,7 +57,7 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
 router.delete('/:id', auth('fiche', 2), async (req, res) => {
     const { id } = req.params;
 
-    await db.query('UPDATE fiche SET deletedAt = DATE_ADD(NOW(), INTERVAL 7 DAY) WHERE id = ?', id );
+    await db.query('UPDATE fiche SET deletedAt = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id = ?', id );
 
 
     const listFichePos = await db.query('SELECT type,targetId FROM fichePos WHERE idFiche = ? GROUP BY TYPE,targetId', id)
