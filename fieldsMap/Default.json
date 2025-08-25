@@ -10,5 +10,6 @@
     "module": ["name", "type", "targetId"],
     "moveModule": ["newPos", "idModule"],
     "fiche": ["name", "image"],
-    "moveFiche": [ "type", "targetId", "pos" ]
+    "moveFiche": [ "type", "targetId", "pos" ],
+    "univers": ["name", "image", "visibility", "description"]
 }

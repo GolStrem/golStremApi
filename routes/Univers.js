@@ -1,0 +1,185 @@
+const express = require('express');
+const router = express.Router();
+
+const session = new (require('@lib/Session'))();
+const db = new (require('@lib/DataBase'))();
+const { auth, checkFields } = require('@lib/RouterMisc');
+
+
+const qryFriends = 'SELECT CASE WHEN f.idSender = ? THEN f.idReceiver ELSE f.idSender END AS id FROM friend f WHERE ? IN (f.idSender,f.idReceiver) AND f.state = 1'
+const qryUnivers = `SELECT 
+  u.id, u.name, u.description, u.image, u.idOwner,
+  us.pseudo AS ownerPseudo, us.image AS ownerImage,
+  CASE 
+    WHEN COUNT(t.id) = 0 THEN JSON_ARRAY()
+    ELSE JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'image', t.image))
+  END AS tags
+FROM univers u
+INNER JOIN user us ON us.id = u.idOwner
+LEFT JOIN universTags uT ON uT.idUnivers = u.id
+LEFT JOIN tags t ON uT.idTag = t.id
+WHERE u.id IN (?)
+GROUP BY u.id
+`
+router.post('', checkFields('univers'), auth(), async (req, res) => {
+    const { name, description, image, visibility, nfsw, tags } = req.body;
+
+    const alreadyExist = await db.exist('SELECT 1 FROM univers WHERE name = ?', name);
+    if (alreadyExist) return res.status(409).send('alreadyExist');
+
+    const afterInsert = 
+        await db.pushAndReturn('univers','idOwner, name, description, image, visibility, nfsw', [session.getUserId(), name, description, image, visibility, nfsw ?? 0])
+
+    const id = afterInsert.id;
+
+    await db.query('INSERT INTO universTags SELECT ?, t.id FROM tags t WHERE t.name IN (?)', id, tags)
+    const listTags = await db.query('select t.id, t.name, t.image from universTags ut join tags t on ut.idTag = t.id where ut.idUnivers = ?', id)
+    
+    await db.query('insert into userUnivers values (?, ?, ?)', id, session.getUserId(), 3)
+    const listUsers = await db.query('select u.id, u.pseudo, u.image from user u where u.id = ?', session.getUserId())
+
+    return res.json({...afterInsert, tags: listTags, users: listUsers});
+})
+
+router.get('', auth(), async (req, res) => {
+    var noNeed = false;
+    const { limit = 20, p = 0, search, filter, sort, order = 'desc' } = req.query;
+
+    const dataQry = {
+        select: ['u.id'],
+        join: [],
+        where: ['u.nfsw = :nfsw', 'u.deletedAt is null'],
+        order: [],
+        values: { nfsw: 0 }
+    };
+
+    if (search !== undefined) {
+        dataQry.where.push("u.name LIKE :search");
+        dataQry.values['search'] = `%${search}%`;
+    }
+
+    if (sort !== undefined) {
+        if (sort === 'createdAt') {
+            dataQry.order.push(`ORDER BY u.createdAt ${order}`);
+        } else if (sort === 'stars') {
+            dataQry.select.push(`COALESCE(s.count,0) as sort`);
+            dataQry.join.push(`LEFT JOIN (
+                SELECT targetType, COUNT(*) as count
+                FROM star
+                WHERE type = 1
+                GROUP BY targetType
+            ) s ON s.targetType = u.id`);
+            dataQry.order.push(`ORDER BY sort ${order}`);
+        } else if (sort === 'members') {
+            dataQry.select.push(`COALESCE(uu.count,0) as sort`);
+            dataQry.join.push(`LEFT JOIN (
+                SELECT idUnivers, COUNT(*) as count
+                FROM userUnivers
+                GROUP BY idUnivers
+            ) uu ON uu.idUnivers = u.id`);
+            dataQry.order.push(`ORDER BY sort ${order}`);
+        }
+    }
+
+    if (filter !== undefined) {
+        if (filter.byFriend !== undefined && filter.withFriends !== undefined) {
+            delete filter.withFriends;
+        }
+
+        for (const key of Object.keys(filter)) {
+            switch (key) {
+                case 'star':
+                    dataQry.join.push(
+                        "INNER JOIN star sFM ON u.id = sFM.targetType AND sFM.type = 1 AND sFM.userId = :myUserId"
+                    );
+                    dataQry.values['myUserId'] = session.getUserId();
+                    break;
+
+                case 'nfsw':
+                    dataQry.where = dataQry.where.filter(cond => cond !== 'u.nfsw = :nfsw');
+                    delete dataQry.values['nfsw'];
+                    break;
+
+                case 'withFriends':
+                    const listFriends = await db.query(qryFriends, session.getUserId(), session.getUserId());
+                    if (listFriends.length === 0) {
+                        noNeed = true;
+                        break;
+                    }
+                    dataQry.join.push(
+                        "INNER JOIN userUnivers uuF ON uuF.idUnivers = u.id AND uuF.idUser IN (:listFriends)"
+                    );
+                    dataQry.values['listFriends'] = listFriends.map(f => f.id);
+                    break;
+
+                case 'byTag':
+                    dataQry.join.push(
+                        "INNER JOIN universTags utF ON utF.idUnivers = u.id AND utF.idTag = :idTag"
+                    );
+                    dataQry.values['idTag'] = filter.byTag;
+                    break;
+
+                case 'byFriend':
+                    dataQry.join.push(
+                        "INNER JOIN userUnivers uuF ON uuF.idUnivers = u.id AND uuF.idUser = :byFriend"
+                    );
+                    dataQry.values['byFriend'] = filter.byFriend;
+                    break;
+            }
+
+            if (noNeed) break;
+        }
+    }
+
+    if (noNeed) return res.json([]);
+
+    const qry = `
+        SELECT ${dataQry.select.join(', ')}
+        FROM univers u
+        ${dataQry.join.join(' ')}
+        ${dataQry.where.length > 0 ? 'WHERE ' + dataQry.where.join(' AND ') : ''}
+        ${dataQry.order.join(' ')}
+        LIMIT :limit OFFSET :offset
+    `;
+
+    dataQry.values['limit'] = Number(limit);
+    dataQry.values['offset'] = p * limit;
+
+    const listUnivers = await db.namedQuery(qry, dataQry.values);
+    const listUniversId = listUnivers.map(u => u.id);
+
+    const lastResult = await db.query(qryUnivers, listUniversId);
+    res.json(lastResult);
+});
+
+router.put('/:idUnivers', auth('univers', 2), async (req, res) => {
+    const { idUnivers } = req.params;
+
+    if (req.body.tags) {
+        await db.query('delete from universTags where idUnivers = ?', idUnivers)
+        await db.query('insert into universTags select ?, t.id from tags t where t.name in (?)', idUnivers, req.body.tags)
+        const listTags = await db.query('select t.id, t.name, t.image from universTags ut join tags t on ut.idTag = t.id where ut.idUnivers = ?', idUnivers)
+        req.body.tags = listTags;
+    }
+
+    const keyExist = ['name', 'description', 'image', 'visibility', 'nfsw'];
+
+    const afterUpdate = await db.update('univers',keyExist,req.body,['id = ?',[idUnivers]])
+    if (req.body.tags === undefined && afterUpdate === false) return res.status(400).send('Malformation');
+    
+    return res.json({id: idUnivers, ...req.body})
+    
+    
+})
+
+router.delete('/:idUnivers', auth('univers', 3), async (req, res) => {
+    const { idUnivers } = req.params;
+
+    await db.query('UPDATE univers SET deletedAt = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id = ?', idUnivers );
+    
+    return res.send("success");
+})
+
+
+
+module.exports = router;
