@@ -3,11 +3,11 @@ const router = express.Router();
 
 const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
-const { authPublic } = require('@lib/RouterMisc');
+const { auth } = require('@lib/RouterMisc');
 
 
 
-router.get('/:id', authPublic('fiche'), async (req, res) => {
+router.get('/:id', auth('fiche', undefined, true), async (req, res) => {
     const { id } = req.params;
 
     const userId = session.getUserId()
@@ -19,8 +19,6 @@ router.get('/:id', authPublic('fiche'), async (req, res) => {
     const module = await db.query('select m.id, m.name, m.extra from module m where m.targetId = ? and m.type = 1', id)
     fiche.droit = 'read'
     fiche.module = module
-
-    console.log(userId)
 
 
     if(fiche.idOwner == userId ||
