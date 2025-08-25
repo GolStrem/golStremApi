@@ -4,7 +4,7 @@ const os = require('os');
 const Database = require('@lib/DataBase');
 const broadCast = require('@lib/BroadCast');
 const { auth } = require('@lib/RouterMisc');
-const { stats } = require('@middleware/monitoring'); // 🔹 même objet que dans le middleware
+const { stats } = require('@middleware/Monitoring'); // 🔹 même objet que dans le middleware
 
 const db = new Database();
 const session = new (require('@lib/Session'))();
