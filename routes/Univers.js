@@ -9,7 +9,10 @@ const { auth, checkFields } = require('@lib/RouterMisc');
 const qryFriends = 'SELECT CASE WHEN f.idSender = ? THEN f.idReceiver ELSE f.idSender END AS id FROM friend f WHERE ? IN (f.idSender,f.idReceiver) AND f.state = 1'
 const qryUnivers = `SELECT 
   u.id, u.name, u.description, u.image, u.idOwner,
-  us.pseudo AS ownerPseudo, us.image AS ownerImage,
+  us.pseudo AS ownerPseudo, us.image AS ownerImage, CASE 
+    WHEN COUNT(s.id) > 0 THEN 1
+    ELSE 0
+  END AS hasStar,
   CASE 
     WHEN COUNT(t.id) = 0 THEN JSON_ARRAY()
     ELSE JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'image', t.image))
@@ -18,6 +21,7 @@ FROM univers u
 INNER JOIN user us ON us.id = u.idOwner
 LEFT JOIN universTags uT ON uT.idUnivers = u.id
 LEFT JOIN tags t ON uT.idTag = t.id
+left join star s on s.type = 1 and s.targetType = u.id
 WHERE u.id IN (?)
 GROUP BY u.id
 `
@@ -146,6 +150,8 @@ router.get('', auth(), async (req, res) => {
     dataQry.values['offset'] = p * limit;
 
     const listUnivers = await db.namedQuery(qry, dataQry.values);
+    if (listUnivers.length === 0) return res.json([]);
+
     const listUniversId = listUnivers.map(u => u.id);
 
     const lastResult = await db.query(qryUnivers, listUniversId);
@@ -177,6 +183,22 @@ router.delete('/:idUnivers', auth('univers', 3), async (req, res) => {
 
     await db.query('UPDATE univers SET deletedAt = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id = ?', idUnivers );
     
+    return res.send("success");
+})
+
+router.post('/:idUnivers/star', auth(), async (req, res) => {
+    const { idUnivers } = req.params;
+
+    await db.push('star','type, userId, targetType', [1, session.getUserId(), idUnivers], '', true)
+
+    return res.send("success");
+})
+
+router.delete('/:idUnivers/star', auth(), async (req, res) => {
+    const { idUnivers } = req.params;
+
+    await db.query("delete from star where type = 1 and userId = ? and targetType = ?", session.getUserId(), idUnivers)
+
     return res.send("success");
 })
 
