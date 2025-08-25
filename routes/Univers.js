@@ -151,11 +151,17 @@ router.get('', auth(), async (req, res) => {
 
     const listUnivers = await db.namedQuery(qry, dataQry.values);
     if (listUnivers.length === 0) return res.json([]);
-
+    
     const listUniversId = listUnivers.map(u => u.id);
 
     const lastResult = await db.query(qryUnivers, listUniversId);
-    res.json(lastResult);
+    
+    // Préserver l'ordre de listUnivers
+    const orderedResult = listUniversId.map(id => 
+      lastResult.find(univers => univers.id === id)
+    );
+    
+    res.json(orderedResult);
 });
 
 router.put('/:idUnivers', auth('univers', 2), async (req, res) => {
