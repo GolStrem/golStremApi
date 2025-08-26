@@ -115,6 +115,12 @@ router.get('', auth(), async (req, res) => {
                     );
                     dataQry.values['listFriends'] = listFriends.map(f => f.id);
                     break;
+                case 'withMe':
+                        dataQry.join.push(
+                            "INNER JOIN userUnivers uuFm ON uuFm.idUnivers = u.id AND uuFm.idUser = :myUserId"
+                        );
+                        dataQry.values['myUserId'] = session.getUserId();
+                        break;
 
                 case 'byTag':
                     dataQry.join.push(
