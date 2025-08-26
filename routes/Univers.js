@@ -21,7 +21,7 @@ FROM univers u
 INNER JOIN user us ON us.id = u.idOwner
 LEFT JOIN universTags uT ON uT.idUnivers = u.id
 LEFT JOIN tags t ON uT.idTag = t.id
-left join star s on s.type = 1 and s.targetType = u.id
+left join star s on s.type = 1 and s.targetType = u.id and s.userId = ?
 WHERE u.id IN (?)
 GROUP BY u.id
 `
@@ -149,19 +149,41 @@ router.get('', auth(), async (req, res) => {
     dataQry.values['limit'] = Number(limit);
     dataQry.values['offset'] = p * limit;
 
-    const listUnivers = await db.namedQuery(qry, dataQry.values);
-    if (listUnivers.length === 0) return res.json([]);
+    // Requête de comptage en parallèle (sans LIMIT/OFFSET)
+    const countQry = `
+        SELECT COUNT(*) as total
+        FROM univers u
+        ${dataQry.join.join(' ')}
+        ${dataQry.where.length > 0 ? 'WHERE ' + dataQry.where.join(' AND ') : ''}
+    `;
+    
+    const [listUnivers, countResult] = await Promise.all([
+        db.namedQuery(qry, dataQry.values),
+        db.namedQuery(countQry, dataQry.values)
+    ]);
+    
+    if (listUnivers.length === 0) return res.json({ data: [], pagination: { total: 0, pages: 0, currentPage: Number(p), limit: Number(limit) } });
     
     const listUniversId = listUnivers.map(u => u.id);
-
-    const lastResult = await db.query(qryUnivers, listUniversId);
+    const lastResult = await db.query(qryUnivers, session.getUserId(), listUniversId);
     
     // Préserver l'ordre de listUnivers
     const orderedResult = listUniversId.map(id => 
       lastResult.find(univers => univers.id === id)
     );
     
-    res.json(orderedResult);
+    const total = countResult[0].total;
+    const pages = Math.ceil(total / limit);
+    
+    res.json({
+        data: orderedResult,
+        pagination: {
+            total,
+            pages,
+            currentPage: Number(p),
+            limit: Number(limit)
+        }
+    });
 });
 
 router.put('/:idUnivers', auth('univers', 2), async (req, res) => {
