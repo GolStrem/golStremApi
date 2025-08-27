@@ -12,6 +12,7 @@ const port = 8000;
 const { countHttpMiddleware } = require('@middleware/Monitoring');
 const { newRequestMiddleware } = require('@middleware/NewRequest');
 
+require('@cron/Cron');
 
 const allowedOrigins = [
   'http://83.114.227.65:3000',
