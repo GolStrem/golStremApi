@@ -47,6 +47,8 @@ app.use('/univers', require('@routes/Univers'));
 app.use('/data', require('@routes/Data'));
 app.use('/monitoring', require('@routes/Monitoring'));
 
+app.use('/callback', require('@routes/Callback'));
+
 // Lance le serveur uniquement si on n’est **pas** en mode test
 if (process.env.NODE_ENV !== 'test') {
     app.listen(port, async () => {
