@@ -69,7 +69,7 @@ router.post('/login', checkFields('login'), async (req, res) => {
   await db.query(
     'INSERT INTO session(userId, token, ip) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE token = ?, createdAt = NOW()',
     result.id, token, req.ip, token
-    );
+  );
 
   
   return res.send(token);
