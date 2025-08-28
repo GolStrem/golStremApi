@@ -1,5 +1,6 @@
 const cron = require('node-cron');
+const cronDelete = require('@cron/Delete');
 
-cron.schedule('0 1 * * *', () => {
-  console.log('running a task every minute');
-});
+
+// Exécution à 2h du matin tous les jours
+cron.schedule('0 2 * * *', cronDelete);
