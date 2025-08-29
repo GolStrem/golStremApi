@@ -6,8 +6,45 @@ const db = new (require('@lib/DataBase'))();
 const { auth, checkFields, move, cleanPosPoly } = require('@lib/RouterMisc');
 const { check } = require('@lib/Util');
 
+const STATE = 2;
+
+// Fonction pour vérifier si l'utilisateur a le droit de créer un module sur la cible
+async function canCreateModuleOnTarget(userId, type, targetId, minState = 0) {
+    const getQryUniv = (alias, key) => {
+        return `(SELECT 1 FROM userUnivers ${alias} WHERE ${alias}.idUnivers = ${key} AND ${alias}.idUser = :userId AND ${alias}.state >= :minState)`;
+    };
+
+    let query;
+    let params = {userId: userId, targetId: targetId, minState: minState};
+
+    switch (parseInt(type)) {
+        case 0:
+            return parseInt(targetId) === parseInt(userId);
+
+        case 1:
+            query = 
+            `SELECT 1 FROM fiche f WHERE f.id = :targetId AND (f.idOwner = :userId OR (f.idOwner IS NULL AND EXISTS ${getQryUniv('uU', 'f.idUnivers')}))`;
+        break;
+        case 2:
+            query = `SELECT 1 FROM univers u WHERE u.id = :targetId AND EXISTS ${getQryUniv('uU', 'u.id')}`;
+        break;
+
+        default:
+            return false;
+    }
+
+    const result = await db.namedQuery(query, params);
+    return result.length > 0;
+}
+
 router.post('', checkFields('module'), auth(), async (req, res) => {
     let { type, targetId, name, extra } = req.body;
+
+    // Vérifier si l'utilisateur a le droit de créer un module sur cette cible
+    const userId = session.getUserId();
+    const canCreate = await canCreateModuleOnTarget(userId, type, targetId, STATE);
+    
+    if (!canCreate) return res.status(403).send("no authorization");
 
     try {
         extra = typeof extra === 'string' ? JSON.parse(extra) : (extra || {});
@@ -41,7 +78,7 @@ router.post('', checkFields('module'), auth(), async (req, res) => {
 });
 
 
-router.put('/:idModule', auth('module'), async (req, res) => {
+router.put('/:idModule', auth('module', STATE), async (req, res) => {
     const { idModule } = req.params;
     const keyExist = ['name', 'extra', 'type', 'targetId'];
 
@@ -72,7 +109,7 @@ router.put('/:idModule', auth('module'), async (req, res) => {
     return res.send('success');
 });
 
-router.delete('/:idModule', auth('module'), async (req, res) => {
+router.delete('/:idModule', auth('module', STATE), async (req, res) => {
     const { idModule } = req.params;
 
     const moduleData = await db.oneResult('SELECT type, targetId, name, extra FROM module WHERE id = ?',idModule);
@@ -111,7 +148,7 @@ router.post('/alias', async (req, res) => {
     return res.json(obj);
 });
 
-router.patch('/move', auth('module'), checkFields('moveModule'), async (req, res) => {
+router.patch('/move', auth('module', STATE), checkFields('moveModule'), async (req, res) => {
     const { newPos, idModule } = req.body
 
     const result = await move('module', newPos, idModule, ['type','targetId'])
@@ -157,10 +194,10 @@ const postPutExtra = async (req, res) => {
 
     return res.send('success');
 }
-router.post('/:idModule/:idExtra', auth('module'), postPutExtra);
-router.put('/:idModule/:idExtra', auth('module'), postPutExtra);
+router.post('/:idModule/:idExtra', auth('module', STATE), postPutExtra);
+router.put('/:idModule/:idExtra', auth('module', STATE), postPutExtra);
 
-router.delete('/:idModule/:idExtra', auth('module'), async (req, res) => {
+router.delete('/:idModule/:idExtra', auth('module', STATE), async (req, res) => {
     const { idModule, idExtra } = req.params;
 
     const extra = await db.oneResult('SELECT extra FROM module WHERE id = ?', idModule);

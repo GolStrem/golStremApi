@@ -16,7 +16,8 @@ const qryUnivers = `SELECT
   CASE 
     WHEN COUNT(t.id) = 0 THEN JSON_ARRAY()
     ELSE JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'image', t.image))
-  END AS tags
+  END AS tags,
+  IF(u.visibility = 2, 2, IF(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers = u.id AND uU.idUser = ?), 2, u.visibility)) AS visibility
 FROM univers u
 INNER JOIN user us ON us.id = u.idOwner
 LEFT JOIN universTags uT ON uT.idUnivers = u.id
@@ -25,14 +26,20 @@ left join star s on s.type = 1 and s.targetType = u.id and s.userId = ?
 WHERE u.id IN (?)
 GROUP BY u.id
 `
+
+const qryOneUnivers = `SELECT id,name,description,image,background,
+if(idOwner=?, 'owner', if(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers = u.id AND uU.idUser = ? AND uU.state >= 2), 'write', 'read')) AS droit 
+
+FROM univers u WHERE id=? and u.deletedAt is null`
+
 router.post('', checkFields('univers'), auth(), async (req, res) => {
-    const { name, description, image, visibility, nfsw, tags } = req.body;
+    const { name, description, image, background, visibility, nfsw, tags } = req.body;
 
     const alreadyExist = await db.exist('SELECT 1 FROM univers WHERE name = ?', name);
     if (alreadyExist) return res.status(409).send('alreadyExist');
 
     const afterInsert = 
-        await db.pushAndReturn('univers','idOwner, name, description, image, visibility, nfsw', [session.getUserId(), name, description, image, visibility, nfsw ?? 0])
+        await db.pushAndReturn('univers','idOwner, name, description, image, background, visibility, nfsw', [session.getUserId(), name, description, image, background, visibility, nfsw ?? 0])
 
     const id = afterInsert.id;
 
@@ -171,7 +178,7 @@ router.get('', auth(), async (req, res) => {
     if (listUnivers.length === 0) return res.json({ data: [], pagination: { total: 0, pages: 0, currentPage: Number(p), limit: Number(limit) } });
     
     const listUniversId = listUnivers.map(u => u.id);
-    const lastResult = await db.query(qryUnivers, session.getUserId(), listUniversId);
+    const lastResult = await db.query(qryUnivers, session.getUserId(), session.getUserId(), listUniversId);
     
     // Préserver l'ordre de listUnivers
     const orderedResult = listUniversId.map(id => 
@@ -192,6 +199,14 @@ router.get('', auth(), async (req, res) => {
     });
 });
 
+router.get('/:idUnivers', auth('univers', 0, true), async (req, res) => {
+    const { idUnivers } = req.params;
+    const univers = await db.oneResult(qryOneUnivers, session.getUserId(),session.getUserId(), idUnivers);
+    const universModule = await db.query('select m.id, m.name, m.extra from module m where m.targetId = ? and m.type = 2', idUnivers);
+    univers.module = universModule;
+    return res.json(univers);
+})
+
 router.put('/:idUnivers', auth('univers', 2), async (req, res) => {
     const { idUnivers } = req.params;
 
@@ -202,7 +217,7 @@ router.put('/:idUnivers', auth('univers', 2), async (req, res) => {
         req.body.tags = listTags;
     }
 
-    const keyExist = ['name', 'description', 'image', 'visibility', 'nfsw'];
+    const keyExist = ['name', 'description', 'image', 'background', 'visibility', 'nfsw'];
 
     const afterUpdate = await db.update('univers',keyExist,req.body,['id = ?',[idUnivers]])
     if (req.body.tags === undefined && afterUpdate === false) return res.status(400).send('Malformation');
