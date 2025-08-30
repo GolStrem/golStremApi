@@ -58,10 +58,10 @@ router.get('', auth(), async (req, res) => {
 
     const dataQry = {
         select: ['u.id'],
-        join: [],
-        where: ['u.nfsw = :nfsw', 'u.deletedAt is null'],
+        join: ['left JOIN userUnivers uuFm ON uuFm.idUnivers = u.id AND uuFm.idUser = :myUserId'],
+        where: ['u.nfsw = :nfsw', 'u.deletedAt is null', '(u.visibility != 2 or uuFm.idUser is not null)'],
         order: [],
-        values: { nfsw: 0 }
+        values: { nfsw: 0, myUserId: session.getUserId() }
     };
 
     if (search !== undefined) {
@@ -123,10 +123,7 @@ router.get('', auth(), async (req, res) => {
                     dataQry.values['listFriends'] = listFriends.map(f => f.id);
                     break;
                 case 'withMe':
-                        dataQry.join.push(
-                            "INNER JOIN userUnivers uuFm ON uuFm.idUnivers = u.id AND uuFm.idUser = :myUserId"
-                        );
-                        dataQry.values['myUserId'] = session.getUserId();
+                        dataQry.where.push("uuFm.idUser is not null");
                         break;
 
                 case 'byTag':
