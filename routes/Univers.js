@@ -27,7 +27,9 @@ WHERE u.id IN (?)
 GROUP BY u.id
 `
 
-const qryOneUnivers = `SELECT id,name,description,image,background,
+const defaultModule = ['gallery', 'board', 'inscription', 'etablissement', 'encyclopedie', 'fiche']
+
+const qryOneUnivers = `SELECT id,name,description,image,background, nfsw, visibility,
 if(idOwner=?, 'owner', if(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers = u.id AND uU.idUser = ? AND uU.state >= 2), 'write', 'read')) AS droit 
 
 FROM univers u WHERE id=? and u.deletedAt is null`
@@ -43,11 +45,17 @@ router.post('', checkFields('univers'), auth(), async (req, res) => {
 
     const id = afterInsert.id;
 
-    await db.query('INSERT INTO universTags SELECT ?, t.id FROM tags t WHERE t.name IN (?)', id, tags)
-    const listTags = await db.query('select t.id, t.name, t.image from universTags ut join tags t on ut.idTag = t.id where ut.idUnivers = ?', id)
-    
     await db.query('insert into userUnivers values (?, ?, ?)', id, session.getUserId(), 3)
     const listUsers = await db.query('select u.id, u.pseudo, u.image from user u where u.id = ?', session.getUserId())
+
+    await db.push('module', 'type, targetId, name, pos', Object.keys(defaultModule).map(i => {return [2, id , defaultModule[i], i]}))
+
+    let listTags = [];
+    if (tags.length > 0) {
+        await db.query('INSERT INTO universTags SELECT ?, t.id FROM tags t WHERE t.name IN (?)', id, tags)
+        listTags = await db.query('select t.id, t.name, t.image from universTags ut join tags t on ut.idTag = t.id where ut.idUnivers = ?', id)
+    }
+
 
     return res.json({...afterInsert, tags: listTags, users: listUsers});
 })
