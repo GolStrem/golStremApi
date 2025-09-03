@@ -256,6 +256,7 @@ router.delete('/:idUnivers/star', auth(), async (req, res) => {
     return res.send("success");
 })
 
+router.use('/:idUnivers/gallery', require('./Univers/Gallery'));
 
 
 module.exports = router;
