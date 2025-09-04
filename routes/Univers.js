@@ -17,7 +17,7 @@ const qryUnivers = `SELECT
     WHEN COUNT(t.id) = 0 THEN JSON_ARRAY()
     ELSE JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'image', t.image))
   END AS tags,
-  IF(u.visibility = 2, 2, IF(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers = u.id AND uU.idUser = ?), 2, u.visibility)) AS visibility
+  IF(u.visibility = 2, 2, IF(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers = u.id AND uU.idUser = ? and uU.state >= 0), 2, u.visibility)) AS visibility
 FROM univers u
 INNER JOIN user us ON us.id = u.idOwner
 LEFT JOIN universTags uT ON uT.idUnivers = u.id
@@ -35,13 +35,13 @@ if(idOwner=?, 'owner', if(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers
 FROM univers u WHERE id=? and u.deletedAt is null`
 
 router.post('', checkFields('univers'), auth(), async (req, res) => {
-    const { name, description, image, background, visibility, nfsw, tags } = req.body;
+    const { name, description, image, background, visibility, nfsw, tags, openRegistration } = req.body;
 
     const alreadyExist = await db.exist('SELECT 1 FROM univers WHERE name = ?', name);
     if (alreadyExist) return res.status(409).send('alreadyExist');
 
     const afterInsert = 
-        await db.pushAndReturn('univers','idOwner, name, description, image, background, visibility, nfsw', [session.getUserId(), name, description, image, background, visibility, nfsw ?? 0])
+        await db.pushAndReturn('univers','idOwner, name, description, image, background, visibility, nfsw, openRegistration', [session.getUserId(), name, description, image, background, visibility, nfsw ?? 0, openRegistration ?? 0])
 
     const id = afterInsert.id;
 
@@ -94,6 +94,7 @@ router.get('', auth(), async (req, res) => {
             dataQry.join.push(`LEFT JOIN (
                 SELECT idUnivers, COUNT(*) as count
                 FROM userUnivers
+                where state >= 0
                 GROUP BY idUnivers
             ) uu ON uu.idUnivers = u.id`);
             dataQry.order.push(`ORDER BY sort ${order}`);
@@ -126,7 +127,7 @@ router.get('', auth(), async (req, res) => {
                         break;
                     }
                     dataQry.join.push(
-                        "INNER JOIN userUnivers uuF ON uuF.idUnivers = u.id AND uuF.idUser IN (:listFriends)"
+                        "INNER JOIN userUnivers uuF ON uuF.idUnivers = u.id AND uuF.idUser IN (:listFriends) and uuF.state >= 0"
                     );
                     dataQry.values['listFriends'] = listFriends.map(f => f.id);
                     break;
@@ -143,7 +144,7 @@ router.get('', auth(), async (req, res) => {
 
                 case 'byFriend':
                     dataQry.join.push(
-                        "INNER JOIN userUnivers uuF ON uuF.idUnivers = u.id AND uuF.idUser = :byFriend"
+                        "INNER JOIN userUnivers uuF ON uuF.idUnivers = u.id AND uuF.idUser = :byFriend and uuF.state >= 0"
                     );
                     dataQry.values['byFriend'] = filter.byFriend;
                     break;
@@ -257,6 +258,6 @@ router.delete('/:idUnivers/star', auth(), async (req, res) => {
 })
 
 router.use('/:idUnivers/gallery', require('./Univers/Gallery'));
-
+router.use('/:idUnivers/user', require('./Univers/User'));
 
 module.exports = router;
