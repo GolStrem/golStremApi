@@ -223,7 +223,7 @@ router.put('/:idUnivers', auth('univers', 2), async (req, res) => {
         req.body.tags = listTags;
     }
 
-    const keyExist = ['name', 'description', 'image', 'background', 'visibility', 'nfsw'];
+    const keyExist = ['name', 'description', 'image', 'background', 'visibility', 'nfsw', 'openRegistration'];
 
     const afterUpdate = await db.update('univers',keyExist,req.body,['id = ?',[idUnivers]])
     if (req.body.tags === undefined && afterUpdate === false) return res.status(400).send('Malformation');
