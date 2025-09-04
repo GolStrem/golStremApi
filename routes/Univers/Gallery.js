@@ -91,10 +91,18 @@ router.get('', auth('univers', 0, true), async (req, res) => {
 
 router.get('/:folder', auth('univers', 0, true), async (req, res) => {
     const { idUnivers, folder } = req.params;
-    const images = await db.query(
-        'SELECT image FROM galleryUnivers WHERE idUnivers = ? and folder = ?',
-        idUnivers, folder
-    );
+    let images = [];
+    if (folder === 'null') {
+        images = await db.query(
+            'SELECT id, image FROM galleryUnivers WHERE idUnivers = ? and folder is null',
+            idUnivers
+        );
+    }else {
+        images = await db.query(
+            'SELECT id, image FROM galleryUnivers WHERE idUnivers = ? and folder = ?',
+            idUnivers, folder
+        );
+    }
     return res.json(images);
 });
 
