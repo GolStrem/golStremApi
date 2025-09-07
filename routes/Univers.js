@@ -17,7 +17,7 @@ const qryUnivers = `SELECT
     WHEN COUNT(t.id) = 0 THEN JSON_ARRAY()
     ELSE JSON_ARRAYAGG(JSON_OBJECT('name', t.name, 'image', t.image))
   END AS tags,
-  IF(u.visibility = 2, 2, IF(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers = u.id AND uU.idUser = ? and uU.state >= 0), 2, u.visibility)) AS visibility, openRegistration
+  IF(u.visibility = 0, 0, IF(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers = u.id AND uU.idUser = ? and uU.state >= 0), 0, u.visibility)) AS visibility, openRegistration
 FROM univers u
 INNER JOIN user us ON us.id = u.idOwner
 LEFT JOIN universTags uT ON uT.idUnivers = u.id
