@@ -5,6 +5,28 @@ const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
 const { auth, checkFields } = require('@lib/RouterMisc');
 
+
+router.post('/massif', auth('univers', 2), async (req, res) => {
+    const { idUnivers } = req.params;
+    
+    const dataToInsert = [];
+    Object.keys(req.body).forEach((key) => {
+        req.body[key].forEach((image) => {    
+            dataToInsert.push([idUnivers, key, image]);
+        });
+    });
+
+    await db.push('galleryUnivers', 'idUnivers, folder, image', dataToInsert);
+
+    const formattedResponse = dataToInsert.map((item) => ({
+        id: item[0],
+        folder: item[1],
+        image: item[2]
+    }));
+
+    return res.json(formattedResponse);
+});
+
 router.post('', auth('univers', 2), checkFields('gallery'), async (req, res) => {
     const { idUnivers } = req.params;
     const { folder, image } = req.body;
@@ -69,10 +91,18 @@ router.get('', auth('univers', 0, true), async (req, res) => {
 
 router.get('/:folder', auth('univers', 0, true), async (req, res) => {
     const { idUnivers, folder } = req.params;
-    const images = await db.query(
-        'SELECT image FROM galleryUnivers WHERE idUnivers = ? and folder = ?',
-        idUnivers, folder
-    );
+    let images = [];
+    if (folder === 'null') {
+        images = await db.query(
+            'SELECT id, image FROM galleryUnivers WHERE idUnivers = ? and folder is null',
+            idUnivers
+        );
+    }else {
+        images = await db.query(
+            'SELECT id, image FROM galleryUnivers WHERE idUnivers = ? and folder = ?',
+            idUnivers, folder
+        );
+    }
     return res.json(images);
 });
 
