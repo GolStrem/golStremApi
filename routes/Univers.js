@@ -210,6 +210,8 @@ router.get('/:idUnivers', auth('univers', 0, true), async (req, res) => {
     const univers = await db.oneResult(qryOneUnivers, session.getUserId(),session.getUserId(), idUnivers);
     const universModule = await db.query('select m.id, m.name, m.extra from module m where m.targetId = ? and m.type = 2', idUnivers);
     univers.module = universModule;
+    listTags = await db.query('select t.id, t.name, t.image from universTags ut join tags t on ut.idTag = t.id where ut.idUnivers = ?', idUnivers)
+    univers.tags = listTags
     return res.json(univers);
 })
 
