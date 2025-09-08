@@ -29,7 +29,7 @@ GROUP BY u.id
 
 const defaultModule = ['gallery', 'board', 'inscription', 'etablissement', 'encyclopedie', 'fiche']
 
-const qryOneUnivers = `SELECT id,name,description,image,background, nfsw, visibility,
+const qryOneUnivers = `SELECT id,name,description,image,background, nfsw, visibility, idOwner,
 if(idOwner=?, 'owner', if(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers = u.id AND uU.idUser = ? AND uU.state >= 2), 'write', 'read')) AS droit 
 
 FROM univers u WHERE id=? and u.deletedAt is null`
