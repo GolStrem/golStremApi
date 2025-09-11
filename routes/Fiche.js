@@ -58,6 +58,11 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
 router.delete('/:id', auth('fiche', 2), async (req, res) => {
     const { id } = req.params;
 
+    const fiche = await db.oneResult("select idUnivers from fiche where deletedAt is null and id = ? and idOwner = ?", id, session.getUserId())
+    if (fiche) {
+        return res.status(400).send("cannot delete fiche in univers");
+    }
+
     await db.query('UPDATE fiche SET deletedAt = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id = ?', id );
 
 
@@ -106,13 +111,6 @@ router.patch('/:id', auth('fiche', 2), async(req, res) => {
     }
 
     return res.send("success");
-})
-
-router.post('', auth('fiche', 2), async(req, res) => {
-    const { id } = req.params;
-    await db.query("update fiche set deletedAt = null where id = ?", id)
-    const fiche = await db.oneResult("select * from fiche where id = ?", id)
-       
 })
 
 router.use('/:id/univers', require('@routes/Fiche/FicheUnivers'));

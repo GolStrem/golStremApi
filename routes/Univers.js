@@ -262,5 +262,6 @@ router.delete('/:idUnivers/star', auth(), async (req, res) => {
 router.use('/:idUnivers/gallery', require('./Univers/Gallery'));
 router.use('/:idUnivers/user', require('./Univers/User'));
 router.use('/:idUnivers/subscribe', require('./Univers/Subscribe'));
+router.use('/:idUnivers/administration', require('./Univers/Administration'));
 
 module.exports = router;

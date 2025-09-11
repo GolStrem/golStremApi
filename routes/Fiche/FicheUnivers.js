@@ -5,6 +5,19 @@ const session = new (require('@lib/Session'))();
 const db = new (require('@lib/DataBase'))();
 const { auth } = require('@lib/RouterMisc');
 const { filtAsync, check } = require('@lib/Util');
+const { cleanPos  } = require('@lib/MoveFiche');
+
+router.delete('', auth('fiche', 2), async(req, res) => {
+    const { id } = req.params;
+    const fiche = await db.oneResult("select idUnivers from fiche where deletedAt is null and id = ? and idOwner = ?", id, session.getUserId())
+    if (!fiche) return res.status(404).send("no fiche");
+
+    await db.query("update fiche set idUnivers = null, idModele = null where id = ?", id)
+    await db.query("delete from subscribeFiche where idFiche = ?", id)
+    await db.query("delete from fichePos where idFiche = ? and type = 'univers' and targetId = ?", id, fiche.idUnivers)
+    await cleanPos('univers', fiche.idUnivers)
+    return res.send("success");
+})
 
 router.post('', auth('fiche', 2), async(req, res) => {
     const { id } = req.params;
