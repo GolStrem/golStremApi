@@ -15,7 +15,14 @@ router.post('/modelFiche', checkFields('modelFiche'), auth('univers', 2, true), 
 
 router.get('/modelFiche', auth('univers', 0, true), async (req, res) => {
     const { idUnivers } = req.params;
-    const modelFiche = await db.query('SELECT * FROM modelFiche WHERE idUnivers = ?', idUnivers);
+    const { checkRole = 0 } = req.query;
+    const listArgs = [idUnivers];
+    let qryPart = ['',''];
+    if (checkRole) {
+        listArgs.push((await db.oneResult('SELECT state FROM userUnivers WHERE idUnivers = ? AND idUser = ?', idUnivers, session.getUserId())).state);
+        qryPart = ["LEFT JOIN modelFicheRule mfr on mf.id = mfr.idModele AND mfr.rule='role'", " and (? >= mfr.value OR mfr.value IS NULL)"];
+    }
+    const modelFiche = await db.query(`SELECT mf.* FROM modelFiche mf ${qryPart[0]} WHERE idUnivers = ? ${qryPart[1]}`, ...listArgs);
     return res.json(modelFiche);
 })
 
