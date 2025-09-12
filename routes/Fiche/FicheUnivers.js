@@ -59,7 +59,7 @@ async function checkRule(rule, idUnivers, idFiche, error) {
     
     if (rule.rule === 'moduleMandatory') {
         let listModule = (await db.query(qry.moduleMandatory, idFiche)).map(module => module.name)
-        const listModuleLose = rule.value.split(',').filter(module => !listModule.includes(module))
+        const listModuleLose = rule.value.split(',').map(s => s.trim()).filter(module => !listModule.includes(module))
         if(listModuleLose.length > 0) {
             error.moduleMandatory = listModuleLose.join(', ')
             return true

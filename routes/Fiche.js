@@ -51,14 +51,13 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
 
 
     const fiche = await db.query(`${qryFiche} where id${type} = ? and visibility <= ? and deletedAt is null ORDER BY fp.pos`, type, targetId, targetId, visibility )
-    console.log(`${qryFiche} where id${type} = ? and visibility <= ? and deletedAt is null ORDER BY fp.pos`, type, targetId, targetId, visibility)
     return res.json(fiche)
 })
 
 router.delete('/:id', auth('fiche', 2), async (req, res) => {
     const { id } = req.params;
 
-    const fiche = await db.oneResult("select idUnivers from fiche where deletedAt is null and id = ? and idOwner = ?", id, session.getUserId())
+    const fiche = await db.oneResult("select 1 from fiche where deletedAt is null and id = ? and idOwner = ? and idUnivers is not null", id, session.getUserId())
     if (fiche) {
         return res.status(400).send("cannot delete fiche in univers");
     }
