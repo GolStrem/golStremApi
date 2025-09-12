@@ -29,10 +29,14 @@ GROUP BY u.id
 
 const defaultModule = ['gallery', 'board', 'inscription', 'etablissement', 'encyclopedie', 'fiche']
 
-const qryOneUnivers = `SELECT id,name,description,image,background, nfsw, visibility,
-if(idOwner=?, 'owner', if(EXISTS(SELECT 1 FROM userUnivers uU WHERE uU.idUnivers = u.id AND uU.idUser = ? AND uU.state >= 2), 'write', 'read')) AS droit
+const qryOneUnivers = `SELECT u.id,u.name,u.description,u.image,u.background, u.nfsw, u.visibility, u.idOwner,
+uU.state as stateUser,
+if(u.idOwner=?, 'owner', if(uU.state >= 2, 'write', 'read')) AS droit 
 
-FROM univers u WHERE id=? and u.deletedAt is null`
+FROM univers u 
+LEFT JOIN userUnivers uU ON uU.idUnivers = u.id AND uU.idUser = ?
+WHERE u.id=? and u.deletedAt is null`
+
 
 router.post('', checkFields('univers'), auth(), async (req, res) => {
     const { name, description, image, background, visibility, nfsw, tags, openRegistration } = req.body;
@@ -207,7 +211,11 @@ router.get('', auth(), async (req, res) => {
 
 router.get('/:idUnivers', auth('univers', 0, true), async (req, res) => {
     const { idUnivers } = req.params;
+    const { resume = 0 } = req.query;
     const univers = await db.oneResult(qryOneUnivers, session.getUserId(),session.getUserId(), idUnivers);
+    if (resume == 1) {
+        return res.json(univers);
+    }
     const universModule = await db.query('select m.id, m.name, m.extra from module m where m.targetId = ? and m.type = 2', idUnivers);
     univers.module = universModule;
     listTags = await db.query('select t.id, t.name, t.image from universTags ut join tags t on ut.idTag = t.id where ut.idUnivers = ?', idUnivers)
