@@ -6,6 +6,8 @@ const db = new (require('@lib/DataBase'))();
 const { auth, checkFields } = require('@lib/RouterMisc');
 const { newPos, movePos, cleanPos } = require('@lib/MoveFiche');
 
+router.use('/:id/univers', require('@routes/Fiche/FicheUnivers'));
+
 const qryFriends = 'SELECT COUNT(1) as nbr FROM friend f WHERE ((f.idSender = ? AND f.idReceiver = ?) OR (f.idSender = ? AND f.idReceiver = ?))AND f.state = 1 LIMIT 1'
 const qryFiche = 'SELECT f.*,fp.pos from fiche f INNER JOIN fichePos fp ON f.id = fp.idFiche AND fp.type = ? AND fp.targetId = ?'
 const qryUniversUser = 'SELECT COUNT(1) as nbr FROM userUnivers WHERE idUnivers = ? AND idUser = ? AND state >= 0'
@@ -111,7 +113,5 @@ router.patch('/:id', auth('fiche', 2), async(req, res) => {
 
     return res.send("success");
 })
-
-router.use('/:id/univers', require('@routes/Fiche/FicheUnivers'));
 
 module.exports = router;

@@ -21,31 +21,41 @@ router.delete('', auth('fiche', 2), async(req, res) => {
 
 router.post('', auth('fiche', 2), async(req, res) => {
     const { id } = req.params;
-    const { idUnivers, idModele } = req.body;
+    const executeSuccess = () => db.push('subscribeFiche', 'idFiche, idUnivers, idModele, state', [id, req.body.idUnivers, req.body.idModele, 0])
+    return (await validateFicheUnivers(id, req.body, res, executeSuccess))()
+})
+
+router.get('', auth('fiche', 2), async(req, res) => {
+    const { id } = req.params;
+    return (await validateFicheUnivers(id, req.query, res))()
+})
+
+async function validateFicheUnivers(id, params, res, executeSuccess = undefined) {
+    const { idUnivers, idModele } = params;
+    
     const fiche = await db.oneResult("select 1 from fiche where deletedAt is null and idUnivers is null and id = ? and idOwner = ?", id, session.getUserId())
-    if (!fiche) return res.status(404).send("no fiche");
+    if (!fiche) return () => res.status(404).send("no fiche")
 
     const modelExist = await db.oneResult("select 1 from modelFiche where id = ? and idUnivers = ?", idModele, idUnivers)
-    if (!modelExist) return res.status(404).send("no model");
+    if (!modelExist) return () => res.status(404).send("no model")
+
+    const subscribeExist = await db.oneResult("select 1 from subscribeFiche where idFiche = ?", id)
+    if (subscribeExist) return () => res.status(409).send("already subscribed")
+
 
     const error = {};
 
     let listRule = await db.query("select target,rule,value from modelFicheRule where idModele = ?", idModele)
     let fctWithEnv = async (rule) => {return await checkRule(rule, idUnivers, id, error)}
-
     
     listRule = await filtAsync(listRule, fctWithEnv)
     
-    if (error && Object.keys(error).length > 0){
-        return res.status(403).json({status: 'error', error: error})
-    }
+    if (error && Object.keys(error).length > 0) return () => res.status(403).json({status: 'error', error: error})
 
-    await db.push('subscribeFiche', 'idFiche, idUnivers, idModele, state', [id, idUnivers, idModele, 0])
+    if (executeSuccess) await executeSuccess()
 
-    return res.json({status: 'success'})
-    
-    
-})
+    return () => res.json({status: 'success'})
+}
 
 async function checkRule(rule, idUnivers, idFiche, error) {
 
