@@ -37,7 +37,7 @@ router.post('', auth('fiche', 2), async(req, res) => {
     listRule = await filtAsync(listRule, fctWithEnv)
     
     if (error && Object.keys(error).length > 0){
-        return res.json({status: 'error', error: error})
+        return res.status(403).json({status: 'error', error: error})
     }
 
     await db.push('subscribeFiche', 'idFiche, idUnivers, idModele, state', [id, idUnivers, idModele, 0])

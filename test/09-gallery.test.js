@@ -35,7 +35,6 @@ before(async () => {
 describe('Gallery routes', () => {
   it('POST /univers/:idUnivers/gallery → doit créer une nouvelle image', async () => {
     if (!universId) {
-      console.log('Univers non créé, skip du test');
       return;
     }
 
@@ -60,7 +59,6 @@ describe('Gallery routes', () => {
 
   it('GET /univers/:idUnivers/gallery → doit récupérer les dossiers avec nombre d\'images', async () => {
     if (!universId) {
-      console.log('Univers non créé, skip du test');
       return;
     }
 
@@ -80,7 +78,6 @@ describe('Gallery routes', () => {
 
   it('GET /univers/:idUnivers/gallery/:folder → doit récupérer les images d\'un dossier', async () => {
     if (!universId) {
-      console.log('Univers non créé, skip du test');
       return;
     }
 
@@ -97,7 +94,6 @@ describe('Gallery routes', () => {
 
   it('PUT /univers/:idUnivers/gallery/:idImage → doit mettre à jour une image', async () => {
     if (!imageId) {
-      console.log('Image non créée, skip du test');
       return;
     }
 
@@ -126,7 +122,6 @@ describe('Gallery routes', () => {
 
   it('DELETE /univers/:idUnivers/gallery/:idImage → doit supprimer une image', async () => {
     if (!imageId) {
-      console.log('Image non créée, skip du test');
       return;
     }
 
@@ -144,7 +139,6 @@ describe('Gallery routes', () => {
 
   it('GET /univers/:idUnivers/gallery après suppression → doit retourner un dossier vide', async () => {
     if (!universId) {
-      console.log('Univers non créé, skip du test');
       return;
     }
 

@@ -13,7 +13,7 @@ router.post('/modelFiche', checkFields('modelFiche'), auth('univers', 2, true), 
     return res.json(modelFiche);
 })
 
-router.get('/modelFiche', auth('univers', 2, true), async (req, res) => {
+router.get('/modelFiche', auth('univers', 0, true), async (req, res) => {
     const { idUnivers } = req.params;
     const modelFiche = await db.query('SELECT * FROM modelFiche WHERE idUnivers = ?', idUnivers);
     return res.json(modelFiche);
