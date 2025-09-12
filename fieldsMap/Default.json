@@ -12,5 +12,7 @@
     "fiche": ["name", "image"],
     "moveFiche": [ "type", "targetId", "pos" ],
     "univers": ["name", "image", "visibility", "description"],
-    "gallery": ["folder", "image"]
+    "gallery": ["folder", "image"],
+    "modelFiche": ["name", "description"],
+    "modelFicheRule": ["target", "rule", "value"]
 }

@@ -8,7 +8,7 @@ const { newPos, movePos, cleanPos } = require('@lib/MoveFiche');
 
 const qryFriends = 'SELECT COUNT(1) as nbr FROM friend f WHERE ((f.idSender = ? AND f.idReceiver = ?) OR (f.idSender = ? AND f.idReceiver = ?))AND f.state = 1 LIMIT 1'
 const qryFiche = 'SELECT f.*,fp.pos from fiche f INNER JOIN fichePos fp ON f.id = fp.idFiche AND fp.type = ? AND fp.targetId = ?'
-
+const qryUniversUser = 'SELECT COUNT(1) as nbr FROM userUnivers WHERE idUnivers = ? AND idUser = ? AND state >= 0'
 router.post('', checkFields('fiche'), auth(), async (req, res) => {
     const { idOwner, name, color, image, idUnivers, visibility } = req.body;
 
@@ -46,16 +46,21 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
         visibility = (targetId == userId) ? 2 : (await db.oneResult(qryFriends,targetId, userId, userId, targetId)).nbr
     }
     if (type == 'univers') {
-        //@todo univers
+        visibility = (await db.oneResult(qryUniversUser, targetId, session.getUserId())).nbr
     }
 
-    const fiche = await db.query(`${qryFiche} where id${type} = ? and visibility <= ? and deletedAt is null ORDER BY fp.pos`, type, targetId, targetId, visibility )
 
+    const fiche = await db.query(`${qryFiche} where id${type} = ? and visibility <= ? and deletedAt is null ORDER BY fp.pos`, type, targetId, targetId, visibility )
     return res.json(fiche)
 })
 
 router.delete('/:id', auth('fiche', 2), async (req, res) => {
     const { id } = req.params;
+
+    const fiche = await db.oneResult("select 1 from fiche where deletedAt is null and id = ? and idOwner = ? and idUnivers is not null", id, session.getUserId())
+    if (fiche) {
+        return res.status(400).send("cannot delete fiche in univers");
+    }
 
     await db.query('UPDATE fiche SET deletedAt = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id = ?', id );
 
@@ -106,5 +111,7 @@ router.patch('/:id', auth('fiche', 2), async(req, res) => {
 
     return res.send("success");
 })
+
+router.use('/:id/univers', require('@routes/Fiche/FicheUnivers'));
 
 module.exports = router;

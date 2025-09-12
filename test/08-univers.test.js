@@ -142,7 +142,6 @@ describe('Univers routes', () => {
   it('PUT /univers/:idUnivers → doit mettre à jour un univers', async () => {
     // Vérifier que l'univers existe avant de tester
     if (!universId) {
-      console.log('Univers non créé, skip du test');
       return;
     }
 
@@ -166,7 +165,6 @@ describe('Univers routes', () => {
   it('POST /univers/:idUnivers/star → doit ajouter une étoile', async () => {
     // Vérifier que l'univers existe avant de tester
     if (!universId) {
-      console.log('Univers non créé, skip du test');
       return;
     }
 
@@ -190,7 +188,6 @@ describe('Univers routes', () => {
   it('DELETE /univers/:idUnivers/star → doit supprimer une étoile', async () => {
     // Vérifier que l'univers existe avant de tester
     if (!universId) {
-      console.log('Univers non créé, skip du test');
       return;
     }
 
@@ -214,7 +211,6 @@ describe('Univers routes', () => {
   it('DELETE /univers/:idUnivers → doit supprimer un univers', async () => {
     // Vérifier que l'univers existe avant de tester
     if (!universId) {
-      console.log('Univers non créé, skip du test');
       return;
     }
 
