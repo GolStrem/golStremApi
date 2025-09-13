@@ -226,17 +226,23 @@ router.get('/:idUnivers', auth('univers', 0, true), async (req, res) => {
 router.put('/:idUnivers', auth('univers', 2), async (req, res) => {
     const { idUnivers } = req.params;
 
+    let listTags = [];
+
     if (req.body.tags) {
         await db.query('delete from universTags where idUnivers = ?', idUnivers)
         await db.query('insert into universTags select ?, t.id from tags t where t.name in (?)', idUnivers, req.body.tags)
-        const listTags = await db.query('select t.id, t.name, t.image from universTags ut join tags t on ut.idTag = t.id where ut.idUnivers = ?', idUnivers)
-        req.body.tags = listTags;
+        listTags = await db.query('select t.id, t.name, t.image from universTags ut join tags t on ut.idTag = t.id where ut.idUnivers = ?', idUnivers)
+        delete req.body.tags
     }
 
     const keyExist = ['name', 'description', 'image', 'background', 'visibility', 'nfsw', 'openRegistration'];
 
     const afterUpdate = await db.update('univers',keyExist,req.body,['id = ?',[idUnivers]])
-    if (req.body.tags === undefined && afterUpdate === false) return res.status(400).send('Malformation');
+    if (listTags === undefined && afterUpdate === false) return res.status(400).send('Malformation');
+
+    if (listTags.length > 0) {
+        req.body.tags = listTags;
+    }
     
     return res.json({id: idUnivers, ...req.body})
     
