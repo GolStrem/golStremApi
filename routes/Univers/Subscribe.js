@@ -46,7 +46,6 @@ router.put('/:idSubscribe', auth('univers', 2), async (req, res) => {
 
 router.delete('/:idSubscribe', auth(), async (req, res) => {
     const { idUnivers, idSubscribe } = req.params;
-    console.log(idUnivers)
     const subscribe = await db.oneResult('select idFiche, idUnivers, idModele, state from subscribeFiche where id = ?', idSubscribe);
     if (!subscribe) return res.status(404).send('not found');
     
