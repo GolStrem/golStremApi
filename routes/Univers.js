@@ -227,6 +227,7 @@ router.put('/:idUnivers', auth('univers', 2), async (req, res) => {
     const { idUnivers } = req.params;
 
     let listTags = [];
+    let afterUpdate = false;
 
     if (req.body.tags) {
         await db.query('delete from universTags where idUnivers = ?', idUnivers)
@@ -235,9 +236,10 @@ router.put('/:idUnivers', auth('univers', 2), async (req, res) => {
         delete req.body.tags
     }
 
-    const keyExist = ['name', 'description', 'image', 'background', 'visibility', 'nfsw', 'openRegistration'];
-
-    const afterUpdate = await db.update('univers',keyExist,req.body,['id = ?',[idUnivers]])
+    if (Object.keys(req.body).length > 0) {
+        const keyExist = ['name', 'description', 'image', 'background', 'visibility', 'nfsw', 'openRegistration'];
+        afterUpdate = await db.update('univers',keyExist,req.body,['id = ?',[idUnivers]])
+    }
     if (listTags === undefined && afterUpdate === false) return res.status(400).send('Malformation');
 
     if (listTags.length > 0) {
