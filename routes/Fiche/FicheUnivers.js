@@ -7,10 +7,14 @@ const { auth } = require('@lib/RouterMisc');
 const { filtAsync, check } = require('@lib/Util');
 const { cleanPos  } = require('@lib/MoveFiche');
 
-router.delete('', auth('fiche', 2), async(req, res) => {
+router.delete('', auth(), async(req, res) => {
     const { id } = req.params;
-    const fiche = await db.oneResult("select idUnivers from fiche where deletedAt is null and id = ? and idOwner = ?", id, session.getUserId())
+    const fiche = await db.oneResult("select idUnivers, idOwner from fiche where deletedAt is null and id = ?", id)
     if (!fiche) return res.status(404).send("no fiche");
+    if (fiche.idOwner !== session.getUserId()) {
+        const asAuthorized = await db.oneResult('select 1 from userUnivers where idUnivers = ? and idUser = ? and state >= 3', fiche.idUnivers, session.getUserId());
+        if (!asAuthorized) return res.status(403).send("no authorization");
+    }
 
     await db.query("update fiche set idUnivers = null, idModele = null where id = ?", id)
     await db.query("delete from subscribeFiche where idFiche = ?", id)
@@ -39,7 +43,7 @@ async function validateFicheUnivers(id, params, res, executeSuccess = undefined)
     const modelExist = await db.oneResult("select 1 from modelFiche where id = ? and idUnivers = ?", idModele, idUnivers)
     if (!modelExist) return () => res.status(404).send("no model")
 
-    const subscribeExist = await db.oneResult("select 1 from subscribeFiche where idFiche = ?", id)
+    const subscribeExist = await db.oneResult("select 1 from subscribeFiche where idFiche = ? and deletedAt is null", id)
     if (subscribeExist) return () => res.status(409).send("already subscribed")
 
 

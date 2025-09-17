@@ -151,7 +151,7 @@ describe('Univers routes', () => {
       .set('Authorization', token)
       .send({ 
         description: newDescription,
-        tags: ['nouveau_tag']
+        tags: ['Discord']
       });
 
     expect(res.statusCode).to.equal(200);

@@ -44,9 +44,18 @@ router.put('/:idSubscribe', auth('univers', 2), async (req, res) => {
     return res.send("success");
 })
 
-router.delete('/:idSubscribe', auth('univers', 2), async (req, res) => {
-    const { idSubscribe } = req.params;
+router.delete('/:idSubscribe', auth(), async (req, res) => {
+    const { idUnivers, idSubscribe } = req.params;
+    console.log(idUnivers)
     const subscribe = await db.oneResult('select idFiche, idUnivers, idModele, state from subscribeFiche where id = ?', idSubscribe);
+    if (!subscribe) return res.status(404).send('not found');
+    
+    const asOwner = await db.oneResult('select 1 from fiche where id = ? and idOwner = ?', subscribe.idFiche, session.getUserId());
+    if (!asOwner) {
+        const asAuthorized = await db.oneResult('select 1 from userUnivers where idUnivers = ? and idUser = ? and state >= 2', idUnivers, session.getUserId());
+        if (!asAuthorized) return res.status(403).send('no authorization');
+    }
+
     if (subscribe.state == 2) {
         return res.status(400).send('Subscribe already accepted');
     }
