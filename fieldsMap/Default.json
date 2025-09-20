@@ -14,5 +14,6 @@
     "univers": ["name", "image", "visibility", "description"],
     "gallery": ["folder", "image"],
     "modelFiche": ["name", "description"],
-    "modelFicheRule": ["target", "rule", "value"]
+    "modelFicheRule": ["target", "rule", "value"],
+    "book": ["name", "description", "image"]
 }
