@@ -279,5 +279,6 @@ router.use('/:idUnivers/gallery', require('./Univers/Gallery'));
 router.use('/:idUnivers/user', require('./Univers/User'));
 router.use('/:idUnivers/subscribe', require('./Univers/Subscribe'));
 router.use('/:idUnivers/administration', require('./Univers/Administration'));
+router.use('/:idUnivers/book', require('./Univers/Book'));
 
 module.exports = router;
