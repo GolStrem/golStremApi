@@ -6,6 +6,38 @@ const db = new (require('@lib/DataBase'))();
 const { auth, checkFields } = require('@lib/RouterMisc');
 
 
+router.get('', auth('univers', 0, true), async (req, res) => {
+    const { idUnivers } = req.params;
+    const { searchInUnivers = null, nameBook = null } = req.query;
+    let qry = 'SELECT b.id, b.name, b.image, b.description FROM book b WHERE idUnivers = ?';
+    let values = [];
+    if(searchInUnivers !== null) {
+        qry += ' AND public = 1';
+        values.push(searchInUnivers);
+    }else{
+        values.push(idUnivers);
+    }
+    if(nameBook !== null) {
+        qry += ' AND name LIKE ?';
+        values.push(`%${nameBook}%`);
+    }
+
+    const books = await db.query(qry, ...values);
+    return res.json(books);
+})
+
+router.get('/listUnivers', auth('univers', 0, true), async (req, res) => {
+    const { nameUnivers = null } = req.query;
+    let qry = 'SELECT DISTINCT b.idUnivers, u.name, u.image FROM book b INNER JOIN univers u on b.idUnivers = u.id where public = 1';
+    let values = [];
+    if(nameUnivers !== null) {
+        qry += ' AND u.name LIKE ?';
+        values.push(`%${nameUnivers}%`);
+    }
+    const books = await db.query(qry, ...values);
+    return res.json(books);
+})
+
 router.get('/:idBook', auth('univers', 0, true), async (req, res) => {
     const { idUnivers, idBook } = req.params;
     
@@ -55,11 +87,17 @@ router.post('', auth('univers', 2), checkFields('book'), async (req, res) => {
     }
 
     if (link.length > 0) {
-        await db.push('bookLink', 'idLink, idBook', link.map(l => [idLink, l]));
+        const listBook = await db.query('select id from book where id in (?) and (idUnivers = ? or public = 1)', link, idUnivers);
+        if(listBook.length > 0) {
+            await db.push('bookLink', 'idLink, idBook', listBook.map(l => [idLink, l.id]));
+        }
     }
 
     if (connectArticle !== null) {
-        await db.push('bookLink', 'idLink, idBook', [connectArticle, idLink]);
+        const asPossible = await db.exist('SELECT 1 FROM book WHERE id = ? and idUnivers = ?', connectArticle, idUnivers);
+        if(asPossible) {
+            await db.push('bookLink', 'idLink, idBook', [connectArticle, idLink]);
+        }
     }
 
     return res.json(afterInsert);
