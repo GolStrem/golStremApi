@@ -9,7 +9,16 @@ const { newPos, movePos, cleanPos } = require('@lib/MoveFiche');
 router.use('/:id/univers', require('@routes/Fiche/FicheUnivers'));
 
 const qryFriends = 'SELECT COUNT(1) as nbr FROM friend f WHERE ((f.idSender = ? AND f.idReceiver = ?) OR (f.idSender = ? AND f.idReceiver = ?))AND f.state = 1 LIMIT 1'
-const qryFiche = 'SELECT f.*,fp.pos from fiche f INNER JOIN fichePos fp ON f.id = fp.idFiche AND fp.type = ? AND fp.targetId = ?'
+const qryFiche = `SELECT 
+    f.*,
+    u.id AS 'idUnivers', u.name AS 'nameUnivers', u.description AS 'DescriptionUnivers',u.image AS 'imageUnivers',
+    m.id AS 'idModel', m.name AS 'nameModel', m.description AS 'DescriptionModel',m.image AS 'imageModel',
+    fp.pos 
+from fiche f 
+    INNER JOIN fichePos fp ON f.id = fp.idFiche AND fp.type = ? AND fp.targetId = ?
+    LEFT JOIN univers u ON f.idUnivers = u.id 
+    LEFT JOIN modelFiche m ON f.idModele = m.id`
+
 const qryUniversUser = 'SELECT COUNT(1) as nbr FROM userUnivers WHERE idUnivers = ? AND idUser = ? AND state >= 0'
 router.post('', checkFields('fiche'), auth(), async (req, res) => {
     const { idOwner, name, color, image, idUnivers, visibility } = req.body;
@@ -52,7 +61,7 @@ router.get('/:type/:targetId', auth(), async (req, res) => {
     }
 
 
-    const fiche = await db.query(`${qryFiche} where id${type} = ? and visibility <= ? and deletedAt is null ORDER BY fp.pos`, type, targetId, targetId, visibility )
+    const fiche = await db.query(`${qryFiche} where f.id${type} = ? and f.visibility <= ? and f.deletedAt is null ORDER BY fp.pos`, type, targetId, targetId, visibility )
     return res.json(fiche)
 })
 
