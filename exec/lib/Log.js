@@ -49,6 +49,9 @@ class Log {
 
         // Écrire dans le fichier
         try {
+            if(process.env.consoleLog) {
+                console.log(ligneLog.trim());
+            }
             fs.appendFileSync(this.nameFile, ligneLog, 'utf8');
         } catch (error) {
             console.error('Erreur lors de l\'écriture du log:', error);

@@ -7,6 +7,13 @@ const action = async () => {
     await deleteToken();
     await deleteFiche();
     await deleteUnivers();
+    await deleteBookLink();
+}
+
+async function deleteBookLink() {
+    log('-- Suppresion bookLink');
+    const res = await db.query('DELETE bl FROM bookLink bl LEFT JOIN book b ON bl.idLink = b.idLink WHERE b.idLink IS NULL');
+    log(`-- ${res.affectedRows} bookLink supprimés`);
 }
 
 async function deleteToken() {
