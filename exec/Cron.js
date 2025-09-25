@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const cronDelete = require('@cron/Delete');
+const cronDelete = require('@exec/Delete');
 
 
 // Exécution à 2h du matin tous les jours

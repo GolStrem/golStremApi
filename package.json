@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=test mocha \"test/**/*.test.js\" --exit"
+    "test": "cross-env NODE_ENV=test mocha \"test/**/*.test.js\" --exit",
+    "exec": "node exec/mobile.js"
   },
   "keywords": [],
   "author": "",
@@ -38,7 +39,7 @@
     "@mail": "mail",
     "@fieldsMap": "fieldsMap",
     "@middleware": "middleWare",
-    "@cron": "cron"
+    "@exec": "exec"
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
