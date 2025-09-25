@@ -27,7 +27,7 @@ WHERE u.id IN (?)
 GROUP BY u.id
 `
 
-const defaultModule = ['gallery', 'board', 'inscription', 'etablissement', 'encyclopedie', 'fiche']
+const defaultModule = ['gallery', 'board', 'inscription', 'etablissement', 'encyclopedie', 'fiche', 'administration']
 
 const qryOneUnivers = `SELECT u.id,u.name,u.description,u.image,u.background, u.nfsw, u.visibility, u.idOwner,
 uU.state as stateUser,
