@@ -15,5 +15,6 @@
     "gallery": ["folder", "image"],
     "modelFiche": ["name", "description"],
     "modelFicheRule": ["target", "rule", "value"],
-    "book": ["name", "description", "image"]
+    "book": ["name", "description", "image"],
+    "subscribe": ["typeSubscription"]
 }
