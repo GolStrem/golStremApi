@@ -8,8 +8,8 @@ const { auth, checkFields } = require('@lib/RouterMisc');
 
 router.get('', auth('univers', 0, true), async (req, res) => {
     const { idUnivers } = req.params;
-    const { searchInUnivers = null, nameBook = null } = req.query;
-    let qry = 'SELECT b.id, b.name, b.image, b.description FROM book b WHERE idUnivers = ?';
+    const { searchInUnivers = null, nameBook = null, type = null } = req.query;
+    let qry = 'SELECT b.id, b.externalLink, b.name, b.image, b.description, b.type FROM book b WHERE idUnivers = ?';
     let values = [];
     if(searchInUnivers !== null) {
         qry += ' AND public = 1';
@@ -20,6 +20,10 @@ router.get('', auth('univers', 0, true), async (req, res) => {
     if(nameBook !== null) {
         qry += ' AND name LIKE ?';
         values.push(`%${nameBook}%`);
+    }
+    if(type !== null) {
+        qry += ' AND type = ?';
+        values.push(type);
     }
 
     const books = await db.query(qry, ...values);
