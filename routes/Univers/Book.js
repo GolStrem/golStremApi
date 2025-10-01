@@ -31,14 +31,18 @@ router.get('', auth('univers', 0, true), async (req, res) => {
 })
 
 router.get('/listUnivers', auth('univers', 0, true), async (req, res) => {
+    const { idUnivers } = req.params;
     const { nameUnivers = null } = req.query;
     let qry = 'SELECT DISTINCT b.idUnivers, u.name, u.image FROM book b INNER JOIN univers u on b.idUnivers = u.id where public = 1';
     let values = [];
     if(nameUnivers !== null) {
         qry += ' AND u.name LIKE ?';
         values.push(`%${nameUnivers}%`);
+    } else {
+        qry += ' or u.id = ?'
+        values.push(idUnivers);
     }
-    const books = await db.query(qry, ...values);
+    const books = await db.query(`${qry} order by (b.idUnivers = ?) desc`, ...values, idUnivers);
     return res.json(books);
 })
 
