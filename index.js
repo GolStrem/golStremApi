@@ -6,7 +6,6 @@ const cors = require('cors');
 require('@lib/BroadCast');
 
 const app = express();
-app.use(express.json());
 app.use(useragent.express());
 const port = 8000;
 const { countHttpMiddleware } = require('@middleware/Monitoring');
@@ -34,6 +33,8 @@ app.use(cors({
   credentials: true
 }));
 
+app.use('/stripe/webhook', require('@routes/Webhook/Stripe'));
+app.use(express.json());
 
 app.use(countHttpMiddleware);
 app.use(newRequestMiddleware);
@@ -47,6 +48,7 @@ app.use('/fiche', require('@routes/Fiche'));
 app.use('/univers', require('@routes/Univers'));
 app.use('/data', require('@routes/Data'));
 app.use('/monitoring', require('@routes/Monitoring'));
+app.use('/stripe', require('@routes/Stripe'));
 
 app.use('/callback', require('@routes/Callback'));
 
