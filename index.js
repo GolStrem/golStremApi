@@ -33,7 +33,7 @@ app.use(cors({
   credentials: true
 }));
 
-app.use('/stripe/webhook', require('@routes/Webhook/Stripe'));
+app.use('/stripe/webhook', require('@routes/WebHook/Stripe'));
 app.use(express.json());
 
 app.use(countHttpMiddleware);
