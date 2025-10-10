@@ -107,8 +107,10 @@ describe('Quest routes', () => {
         .set('Authorization', token);
 
       expect(res.statusCode).to.equal(200);
-      expect(res.body).to.be.an('array');
-      expect(res.body.length).to.be.at.least(2);
+      expect(res.body).to.have.property('data');
+      expect(res.body).to.have.property('pagination');
+      expect(res.body.data).to.be.an('array');
+      expect(res.body.data.length).to.be.at.least(2);
     });
 
     it('GET /univers/:idUnivers/quest?search=Test → doit filtrer par recherche', async () => {
@@ -121,7 +123,8 @@ describe('Quest routes', () => {
         .set('Authorization', token);
 
       expect(res.statusCode).to.equal(200);
-      expect(res.body).to.be.an('array');
+      expect(res.body).to.have.property('data');
+      expect(res.body.data).to.be.an('array');
     });
 
     it('GET /univers/:idUnivers/quest?filter[type]=quest → doit filtrer par type', async () => {
@@ -134,9 +137,10 @@ describe('Quest routes', () => {
         .set('Authorization', token);
 
       expect(res.statusCode).to.equal(200);
-      expect(res.body).to.be.an('array');
-      if (res.body.length > 0) {
-        expect(res.body[0]).to.have.property('type', 'quest');
+      expect(res.body).to.have.property('data');
+      expect(res.body.data).to.be.an('array');
+      if (res.body.data.length > 0) {
+        expect(res.body.data[0]).to.have.property('type', 'quest');
       }
     });
 
@@ -150,9 +154,10 @@ describe('Quest routes', () => {
         .set('Authorization', token);
 
       expect(res.statusCode).to.equal(200);
-      expect(res.body).to.be.an('array');
-      if (res.body.length > 0) {
-        expect(res.body[0]).to.have.property('status', 1);
+      expect(res.body).to.have.property('data');
+      expect(res.body.data).to.be.an('array');
+      if (res.body.data.length > 0) {
+        expect(res.body.data[0]).to.have.property('status', 1);
       }
     });
 
@@ -166,7 +171,8 @@ describe('Quest routes', () => {
         .set('Authorization', token);
 
       expect(res.statusCode).to.equal(200);
-      expect(res.body).to.be.an('array');
+      expect(res.body).to.have.property('data');
+      expect(res.body.data).to.be.an('array');
     });
 
     it('GET /univers/:idUnivers/quest?limit=1&p=0 → doit paginer les résultats', async () => {
@@ -179,8 +185,14 @@ describe('Quest routes', () => {
         .set('Authorization', token);
 
       expect(res.statusCode).to.equal(200);
-      expect(res.body).to.be.an('array');
-      expect(res.body.length).to.equal(1);
+      expect(res.body).to.have.property('data');
+      expect(res.body).to.have.property('pagination');
+      expect(res.body.data).to.be.an('array');
+      expect(res.body.data.length).to.equal(1);
+      expect(res.body.pagination).to.have.property('total');
+      expect(res.body.pagination).to.have.property('pages');
+      expect(res.body.pagination).to.have.property('currentPage', '0');
+      expect(res.body.pagination).to.have.property('limit', '1');
     });
   });
 
