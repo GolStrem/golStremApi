@@ -24,7 +24,7 @@ router.get('', auth('univers', 0, true), async (req, res) => {
     const { limit = 20, p = 0, search, filter, sort = 'beginAt', order = 'desc' } = req.query;
     const values = [idUnivers];
 
-    let qry = `SELECT * from quest where idUnivers = ? and deletedAt is null`;
+    let qry = `from quest where idUnivers = ? and deletedAt is null`;
     
     if (search !== undefined) {
         qry += ` and name LIKE ? or description LIKE ?`;
@@ -55,13 +55,21 @@ router.get('', auth('univers', 0, true), async (req, res) => {
 
     const sanitizedOrder = ['asc', 'desc'].includes(order.toLowerCase()) ? order.toLowerCase() : 'desc';
 
+    const nbr = await db.oneResult(`select count(1) as nbr ${qry}`, ...values);
+    const pagination = {
+        total: nbr.nbr,
+        pages: Math.ceil(nbr.nbr / limit),
+        currentPage: p,
+        limit: limit
+    }
+
     qry += ` order by ${sanitizedSort} ${sanitizedOrder}`;
     qry += ` limit ? offset ?`;
     values.push(Number(limit), p * limit);
 
-    const quests = await db.query(qry, ...values);
+    const quests = await db.query(`SELECT * ${qry}`, ...values);
 
-    return res.json(quests);
+    return res.json({data: quests, pagination: pagination});
 });
 
 // Récupérer une quête spécifique

@@ -57,6 +57,21 @@ router.put('/:idUser', auth('univers', 2, true), async (req, res) => {
     return res.json({idUnivers, idUser: idUser, state: state});
 })
 
+
+router.delete('/quit', auth('univers', 0, true), async (req, res) => {
+    const { idUnivers } = req.params;
+    const exist = await db.oneResult(
+        'SELECT state FROM userUnivers uU left join univers u on u.id = uU.idUnivers where uU.idUser = ? and uU.idUnivers = ? and u.idOwner != ?',
+        session.getUserId(), idUnivers, session.getUserId()
+    )
+
+    if (!exist) return res.status(403).send('no authorization');
+
+    await db.query("delete from userUnivers where idUser = ? and idUnivers = ?", session.getUserId(), idUnivers)
+
+    return res.send("success");
+})
+
 router.delete('/:idUser', auth('univers', 2, true), async (req, res) => {
     const { idUnivers, idUser } = req.params;
     const exist = await db.oneResult(

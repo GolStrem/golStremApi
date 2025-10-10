@@ -59,7 +59,8 @@ router.get('/:idBook', auth('univers', 0, true), async (req, res) => {
     }
 
     if(book.idLink !== null) {
-        let link = await db.query('SELECT b.id, b.name, b.image, b.externalLink, b.description, b.type FROM bookLink bl left join book b on bl.idBook = b.id WHERE bl.idLink = ?', book.idLink);
+        const qryParts = book.idUnivers !== Number(idUnivers) ? 'and b.public = 1' : '';
+        let link = await db.query(`SELECT b.id, b.name, b.image, b.externalLink, b.description, b.type FROM bookLink bl left join book b on bl.idBook = b.id WHERE bl.idLink = ? ${qryParts}`, book.idLink);
         if(link && link.length > 0) {
             link = link.map(l => {
                 l.location = l.externalLink === null ? `/encyclopedie/${l.id}` : l.externalLink;
