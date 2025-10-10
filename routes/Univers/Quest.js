@@ -27,7 +27,7 @@ router.get('', auth('univers', 0, true), async (req, res) => {
     let qry = `from quest where idUnivers = ? and deletedAt is null`;
     
     if (search !== undefined) {
-        qry += ` and name LIKE ? or description LIKE ?`;
+        qry += ` and (name LIKE ? or description LIKE ?)`;
         values.push(`%${search}%`, `%${search}%`);
     }
 
@@ -41,8 +41,25 @@ router.get('', auth('univers', 0, true), async (req, res) => {
             'endAt<': '<'
         };
 
+        if(filter.date !== undefined) {
+            const now = new Date();
+            switch (filter.date) {
+                case 'soon':
+                    const sevenDaysLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+                    const OneDaysBefore = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000);
+                    qry += ` and beginAt >= ? and beginAt <= ?`;
+                    values.push(OneDaysBefore, sevenDaysLater);
+                    break;
+                case 'new':
+                    const sevenDaysBefore = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    qry += ` and createdAt >= ?`;
+                    values.push(sevenDaysBefore);
+                    break;
+            }
+        }
+
         Object.entries(filterMapping).forEach(([key, operator]) => {
-            if (filter[key]) {
+            if (filter[key] && key !== 'status') {
                 const field = key.replace(/[<>]/, '');
                 qry += ` and ${field} ${operator} ?`;
                 values.push(filter[key]);
