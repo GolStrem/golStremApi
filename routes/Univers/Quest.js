@@ -59,7 +59,7 @@ router.get('', auth('univers', 0, true), async (req, res) => {
         }
 
         Object.entries(filterMapping).forEach(([key, operator]) => {
-            if (filter[key] && key !== 'status') {
+            if (filter[key]) {
                 const field = key.replace(/[<>]/, '');
                 qry += ` and ${field} ${operator} ?`;
                 values.push(filter[key]);

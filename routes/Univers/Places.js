@@ -80,6 +80,7 @@ router.get('', auth('univers', 0, true), async (req, res) => {
 router.get('/:idPlace', auth('univers', 0, true), async (req, res) => {
     const { idPlace } = req.params;
     const place = await db.oneResult('select id, name, type, description, image, public from places where id = ?', idPlace);
+    if (!place) return res.status(404).send('Place not found');
     return res.json(place);
 });
 
