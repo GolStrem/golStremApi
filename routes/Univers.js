@@ -281,5 +281,6 @@ router.use('/:idUnivers/subscribe', require('./Univers/Subscribe'));
 router.use('/:idUnivers/administration', require('./Univers/Administration'));
 router.use('/:idUnivers/book', require('./Univers/Book'));
 router.use('/:idUnivers/quest', require('./Univers/Quest'));
+router.use('/:idUnivers/places', require('./Univers/Places'));
 
 module.exports = router;

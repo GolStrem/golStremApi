@@ -17,5 +17,6 @@
     "modelFicheRule": ["target", "rule", "value"],
     "book": ["name", "description", "image"],
     "subscribe": ["typeSubscription"],
-    "quest": ["type", "status", "name", "image", "description", "beginAt", "endAt"]
+    "quest": ["type", "status", "name", "image", "description", "beginAt", "endAt"],
+    "places": ["name", "type", "description", "image", "public"]
 }
