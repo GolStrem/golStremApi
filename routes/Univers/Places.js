@@ -8,9 +8,11 @@ const { auth, checkFields } = require('@lib/RouterMisc');
 const { fctCodeToDate, fctDateToCode } = require('@lib/PlageDate');
 
 router.post('', auth('univers', 2), checkFields('places'), async (req, res) => {
-    const { name, type, description, image, public, date = '1dvxwqtywv' } = req.body;
+    let { name, type, description, image, public, date = '2RRVTHNXTR' } = req.body;
     const { idUnivers } = req.params;
     const idOwner = session.getUserId();
+
+    
 
     const afterInsert = await db.pushAndReturn(
         'places',
@@ -18,10 +20,14 @@ router.post('', auth('univers', 2), checkFields('places'), async (req, res) => {
         [idOwner, type, name, description, image, public, idUnivers]
     );
 
+    date = date.filter(d => d[0] !== d[1])
+    date = (date.length > 0) ? fctDateToCode(date) : '2RRVTHNXTR';
+
+
     await db.pushAndReturn(
         'placesOpeningHours',
         'idPlace, d, h',
-        [afterInsert.id, '*', date === '*' ? '*' : fctDateToCode(date)]
+        [afterInsert.id, '*', date]
     );
 
     return res.json({...afterInsert, date});
