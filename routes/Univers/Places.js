@@ -8,7 +8,7 @@ const { auth, checkFields } = require('@lib/RouterMisc');
 const { fctCodeToDate, fctDateToCode } = require('@lib/PlageDate');
 
 router.post('', auth('univers', 2), checkFields('places'), async (req, res) => {
-    let { name, type, description, image, public, date = '2RRVTHNXTR' } = req.body;
+    let { name, type, description, image, public, location, date = [] } = req.body;
     const { idUnivers } = req.params;
     const idOwner = session.getUserId();
 
@@ -16,21 +16,18 @@ router.post('', auth('univers', 2), checkFields('places'), async (req, res) => {
 
     const afterInsert = await db.pushAndReturn(
         'places',
-        'idOwner, type, name, description, image, public, idUnivers',
-        [idOwner, type, name, description, image, public, idUnivers]
+        'idOwner, type, name, description, image, public, idUnivers, location',
+        [idOwner, type, name, description, image, public, idUnivers, location]
     );
-
-    date = date.filter(d => d[0] !== d[1])
-    date = (date.length > 0) ? fctDateToCode(date) : '2RRVTHNXTR';
 
 
     await db.pushAndReturn(
         'placesOpeningHours',
         'idPlace, d, h',
-        [afterInsert.id, '*', date]
+        [afterInsert.id, '*', fctDateToCode(date)]
     );
 
-    return res.json({...afterInsert, date});
+    return res.json({...afterInsert, date: date});
 });
 
 router.get('', auth('univers', 0, true), async (req, res) => {
@@ -41,8 +38,8 @@ router.get('', auth('univers', 0, true), async (req, res) => {
     const args = [idUnivers, session.getUserId()];
 
     if (search !== undefined) {
-        qryBody += ` and (name LIKE ? or description LIKE ?)`;
-        args.push(`%${search}%`, `%${search}%`);
+        qryBody += ` and (name LIKE ? or description LIKE ? or location LIKE ?)`;
+        args.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
 
     if (type !== undefined) {
@@ -78,7 +75,7 @@ router.get('', auth('univers', 0, true), async (req, res) => {
 
     const places = await db.query(`${qryBegin} ${qryBody} limit ? offset ?`, ...args, Number(limit), p * limit);
     places.map(place => {
-        place.hour = fctCodeToDate(place.hour);
+        place.hour = fctCodeToDate(place.hour || '2RRVTHNXTR');
     });
     return res.json({data: places, pagination: pagination});
 });
